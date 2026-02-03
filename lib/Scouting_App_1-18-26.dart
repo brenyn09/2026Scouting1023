@@ -257,14 +257,14 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
         body: Container(
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  const Color.fromARGB(255, 255, 230, 230),
-                  const Color.fromARGB(255, 234, 213, 213),
-                  const Color.fromARGB(255, 255, 213, 213)
+                  Color.fromARGB(255, 255, 230, 230),
+                  Color.fromARGB(255, 234, 213, 213),
+                  Color.fromARGB(255, 255, 213, 213)
                 ],
               ),
             ),
@@ -311,7 +311,7 @@ class _HomePageState extends State<HomePage> {
                               style: TextStyle(
                                   fontSize: 22, fontWeight: FontWeight.bold)),
                           style: OutlinedButton.styleFrom(
-                            foregroundColor: Color.fromARGB(255, 255, 0, 0),
+                            foregroundColor: const Color.fromARGB(255, 255, 0, 0),
                             side: const BorderSide(
                                 color: Color.fromARGB(255, 211, 23, 23),
                                 width: 2),
@@ -332,7 +332,7 @@ class _HomePageState extends State<HomePage> {
                               style: TextStyle(
                                   fontSize: 22, fontWeight: FontWeight.bold)),
                           style: OutlinedButton.styleFrom(
-                            foregroundColor: Color.fromARGB(255, 255, 0, 0),
+                            foregroundColor: const Color.fromARGB(255, 255, 0, 0),
                             side: const BorderSide(
                                 color: Color.fromARGB(255, 211, 23, 23),
                                 width: 2),
@@ -368,7 +368,7 @@ class _SignInPageState extends State<SignInPage> {
         foregroundColor: Colors.white,
       ),
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -394,7 +394,7 @@ class _SignInPageState extends State<SignInPage> {
                           fillColor: Colors.white,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(15),
-                            borderSide: BorderSide(
+                            borderSide: const BorderSide(
                                 color: Color.fromARGB(255, 248, 152, 43)),
                           ),
                         ),
@@ -441,11 +441,11 @@ class _SignInPageState extends State<SignInPage> {
                         ],
                       ),
                       const SizedBox(height: 30),
-                      Text('Select Alliance',
+                      const Text('Select Alliance',
                           style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
-                              color: const Color.fromARGB(255, 255, 255, 255))),
+                              color: Color.fromARGB(255, 255, 255, 255))),
                       const SizedBox(height: 16),
                       Row(
                         children: [
@@ -476,7 +476,7 @@ class _SignInPageState extends State<SignInPage> {
                           style: TextStyle(
                               fontSize: 22, fontWeight: FontWeight.bold)),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Color.fromARGB(255, 248, 152, 43),
+                        backgroundColor: const Color.fromARGB(255, 248, 152, 43),
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(
                             horizontal: 32, vertical: 20),
@@ -491,7 +491,7 @@ class _SignInPageState extends State<SignInPage> {
                               fontSize: 22, fontWeight: FontWeight.bold)),
                       icon: const Icon(Icons.arrow_forward, size: 28),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Color.fromARGB(255, 248, 152, 43),
+                        backgroundColor: const Color.fromARGB(255, 248, 152, 43),
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(
                             horizontal: 32, vertical: 20),
@@ -577,11 +577,11 @@ class _AutonomousPageState extends State<AutonomousPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Autonomous', style: TextStyle(fontSize: 28)),
-        backgroundColor: Color.fromARGB(255, 244, 212, 72),
+        backgroundColor: const Color.fromARGB(255, 244, 212, 72),
         foregroundColor: Colors.white,
       ),
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -601,7 +601,7 @@ class _AutonomousPageState extends State<AutonomousPage> {
                       _buildCounter('Fuel Scored', widget.data.autoFuelScored,
                           (val) {
                         setState(() => widget.data.autoFuelScored = val);
-                      }, Color.fromARGB(255, 244, 212, 72)),
+                      }, const Color.fromARGB(255, 244, 212, 72)),
                       const SizedBox(height: 20),
                       _buildToggle('Tower Level 1', widget.data.autoTowerLevel1,
                           (val) {
@@ -757,7 +757,7 @@ class _AutonomousPageState extends State<AutonomousPage> {
                 child: Switch(
                     value: value,
                     onChanged: onChanged,
-                    activeColor: Colors.green),
+                    activeThumbColor: Colors.green),
               ),
             ],
           ),
@@ -778,7 +778,7 @@ class _AutonomousPageState extends State<AutonomousPage> {
             label: const Text('BACK',
                 style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Color.fromARGB(255, 244, 212, 72),
+              backgroundColor: const Color.fromARGB(255, 244, 212, 72),
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
             ),
@@ -789,7 +789,7 @@ class _AutonomousPageState extends State<AutonomousPage> {
                 style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
             icon: const Icon(Icons.arrow_forward, size: 28),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Color.fromARGB(255, 244, 212, 72),
+              backgroundColor: const Color.fromARGB(255, 244, 212, 72),
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
             ),
@@ -819,11 +819,11 @@ class _TeleopPageState extends State<TeleopPage> {
         foregroundColor: Colors.white,
       ),
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [const Color.fromARGB(255, 199, 233, 197), Colors.white],
+            colors: [Color.fromARGB(255, 199, 233, 197), Colors.white],
           ),
         ),
         child: SafeArea(
@@ -1001,7 +1001,7 @@ class _TeleopPageState extends State<TeleopPage> {
                 child: Switch(
                     value: value,
                     onChanged: onChanged,
-                    activeColor: Colors.green),
+                    activeThumbColor: Colors.green),
               ),
             ],
           ),
@@ -1382,7 +1382,7 @@ class _EndgamePageState extends State<EndgamePage> {
                 child: Switch(
                     value: value,
                     onChanged: onChanged,
-                    activeColor: Colors.green),
+                    activeThumbColor: Colors.green),
               ),
             ],
           ),
