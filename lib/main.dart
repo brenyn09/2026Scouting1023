@@ -953,7 +953,8 @@ class _TeleopPageState extends State<TeleopPage> {
                         setState(() => widget.data.teleopFuelFed = val);
                       }, const Color.fromARGB(255, 217, 10, 172)),
                       const SizedBox(height: 20),
-                      _buildActionButton(
+                      Row( children: [ Expanded(
+                      child: _buildActionButton(
                         'Defense',
                         Icons.shield,
                         widget.data.defense,
@@ -962,6 +963,7 @@ class _TeleopPageState extends State<TeleopPage> {
                           setState(() => widget.data.defense++);
                         },
                       ),
+                      )])
                     ],
                   ),
                 ),
