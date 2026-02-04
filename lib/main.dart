@@ -46,6 +46,7 @@ class ScoutData {
   int teleopFuelFed = 0;
   int defense = 0;
   int climbTime = 0;
+  final Stopwatch climbTimer = Stopwatch();
 
   // Endgame
   String climbLevel = 'None'; // None, Failed, L1, L2, L3
@@ -97,6 +98,7 @@ class ScoutData {
       excel.TextCellValue('T Fuel Scored'),
       excel.TextCellValue('T Fuel Fed'),
       excel.TextCellValue('Defense'),
+      excel.TextCellValue('Climb Time (seconds)'),
       excel.TextCellValue('Climb Level'),
       excel.TextCellValue('Broke'),
       excel.TextCellValue('Permanently Immobilized'),
@@ -920,6 +922,14 @@ class TeleopPage extends StatefulWidget {
 }
 
 class _TeleopPageState extends State<TeleopPage> {
+  bool _isClimbTimerRunning = false;
+  
+  @override
+  void dispose() {
+    widget.data.climbTimer.stop();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -958,17 +968,9 @@ class _TeleopPageState extends State<TeleopPage> {
                       const SizedBox(height: 20),
                       Row(children: [
                         Expanded(
-                          child: _buildActionButton(
-                            'climb time',
-                            Icons.lock_clock,
-                            widget.data.climbTime,
-                            const Color.fromARGB(255, 217, 10, 172),
-                            () {
-                              setState(() => widget.data.climbTime+=10);
-                            },
-                          ),
+                          child: _buildClimbTimeButton(),
                         ),
-                          Expanded(
+                        Expanded(
                           child: _buildActionButton(
                             'Defense',
                             Icons.shield,
@@ -985,6 +987,11 @@ class _TeleopPageState extends State<TeleopPage> {
                 ),
               ),
               _buildNavButtons(() => Navigator.pop(context), () {
+                // Stop the timer and save the final time before navigating
+                if (widget.data.climbTimer.isRunning) {
+                  widget.data.climbTimer.stop();
+                  widget.data.climbTime = widget.data.climbTimer.elapsed.inSeconds;
+                }
                 Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -995,6 +1002,137 @@ class _TeleopPageState extends State<TeleopPage> {
         ),
       ),
     );
+  }
+
+  Widget _buildClimbTimeButton() {
+    return Card(
+      elevation: 5,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            Icon(
+              Icons.lock_clock,
+              size: 60,
+              color: _isClimbTimerRunning 
+                  ? Colors.green
+                  : const Color.fromARGB(255, 217, 10, 172),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Climb Time',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: const Color.fromARGB(255, 217, 10, 172),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              width: 100,
+              height: 70,
+              decoration: BoxDecoration(
+                color: const Color.fromARGB(255, 217, 10, 172).withOpacity(0.2),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: const Color.fromARGB(255, 217, 10, 172),
+                  width: 3,
+                ),
+              ),
+              child: Center(
+                child: Text(
+                  widget.data.climbTimer.elapsed.inSeconds.toString(),
+                  style: const TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                    color: Color.fromARGB(255, 217, 10, 172),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      if (widget.data.climbTimer.isRunning) {
+                        widget.data.climbTimer.stop();
+                        widget.data.climbTime = widget.data.climbTimer.elapsed.inSeconds;
+                        _isClimbTimerRunning = false;
+                      } else {
+                        widget.data.climbTimer.start();
+                        _isClimbTimerRunning = true;
+                        // Update the UI every second while timer is running
+                        _updateTimer();
+                      }
+                    });
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _isClimbTimerRunning 
+                        ? Colors.red 
+                        : Colors.green,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
+                  ),
+                  child: Text(
+                    _isClimbTimerRunning ? 'STOP' : 'START',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      widget.data.climbTimer.reset();
+                      widget.data.climbTime = 0;
+                      _isClimbTimerRunning = false;
+                    });
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orange,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
+                  ),
+                  child: const Text(
+                    'RESET',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _updateTimer() {
+    if (_isClimbTimerRunning && mounted) {
+      Future.delayed(const Duration(seconds: 1), () {
+        if (mounted) {
+          setState(() {
+            widget.data.climbTime = widget.data.climbTimer.elapsed.inSeconds;
+          });
+          if (_isClimbTimerRunning) {
+            _updateTimer();
+          }
+        }
+      });
+    }
   }
 
   Widget _buildInfoCard() {
