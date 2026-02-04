@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:excel/excel.dart' as excel;
 import 'package:file_saver/file_saver.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:path_provider/path_provider.dart';
@@ -44,6 +45,7 @@ class ScoutData {
   int teleopFuelScored = 0;
   int teleopFuelFed = 0;
   int defense = 0;
+  int climbTime = 0;
 
   // Endgame
   String climbLevel = 'None'; // None, Failed, L1, L2, L3
@@ -72,6 +74,7 @@ class ScoutData {
       excel.IntCellValue(teleopFuelScored),
       excel.IntCellValue(teleopFuelFed),
       excel.IntCellValue(defense),
+      excel.IntCellValue(climbTime),
       excel.TextCellValue(climbLevel),
       excel.TextCellValue(broke ? 'Yes' : 'No'),
       excel.TextCellValue(permanentlyImmobilized ? 'Yes' : 'No'),
@@ -953,17 +956,30 @@ class _TeleopPageState extends State<TeleopPage> {
                         setState(() => widget.data.teleopFuelFed = val);
                       }, const Color.fromARGB(255, 217, 10, 172)),
                       const SizedBox(height: 20),
-                      Row( children: [ Expanded(
-                      child: _buildActionButton(
-                        'Defense',
-                        Icons.shield,
-                        widget.data.defense,
-                        const Color.fromARGB(255, 217, 10, 172),
-                        () {
-                          setState(() => widget.data.defense++);
-                        },
-                      ),
-                      )])
+                      Row(children: [
+                        Expanded(
+                          child: _buildActionButton(
+                            'climb time',
+                            Icons.lock_clock,
+                            widget.data.climbTime,
+                            const Color.fromARGB(255, 217, 10, 172),
+                            () {
+                              setState(() => widget.data.climbTime+=10);
+                            },
+                          ),
+                        ),
+                          Expanded(
+                          child: _buildActionButton(
+                            'Defense',
+                            Icons.shield,
+                            widget.data.defense,
+                            const Color.fromARGB(255, 217, 10, 172),
+                            () {
+                              setState(() => widget.data.defense++);
+                            },
+                          ),
+                        ),
+                      ])
                     ],
                   ),
                 ),
