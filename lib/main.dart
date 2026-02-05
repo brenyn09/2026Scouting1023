@@ -968,7 +968,28 @@ class _TeleopPageState extends State<TeleopPage> {
                       const SizedBox(height: 20),
                       Row(children: [
                         Expanded(
-                          child: _buildClimbTimeButton(),
+                          child: _buildActionButton(
+                            'Climb Time',
+                            Icons.lock_clock,
+                            widget.data.climbTime,
+                            const Color.fromARGB(255, 217, 10, 172),
+                            () {
+                    setState(() {
+                      if (widget.data.climbTimer.isRunning) {
+                        const Color.fromARGB(255, 217, 10, 172);
+                        widget.data.climbTimer.stop();
+                        widget.data.climbTime = widget.data.climbTimer.elapsed.inSeconds;
+                        _isClimbTimerRunning = false;
+                      } else {
+                        const Color.fromARGB(255, 9, 255, 0);
+                        widget.data.climbTimer.start();
+                        _isClimbTimerRunning = true;
+                        // Update the UI every second while timer is running
+                        _updateTimer();
+                      }
+                    });
+                  },
+                          ),
                         ),
                         Expanded(
                           child: _buildActionButton(
@@ -1004,125 +1025,9 @@ class _TeleopPageState extends State<TeleopPage> {
     );
   }
 
-  Widget _buildClimbTimeButton() {
-    return Card(
-      elevation: 5,
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            Icon(
-              Icons.lock_clock,
-              size: 60,
-              color: _isClimbTimerRunning 
-                  ? Colors.green
-                  : const Color.fromARGB(255, 217, 10, 172),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Climb Time',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: const Color.fromARGB(255, 217, 10, 172),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Container(
-              width: 100,
-              height: 70,
-              decoration: BoxDecoration(
-                color: const Color.fromARGB(255, 217, 10, 172).withOpacity(0.2),
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: const Color.fromARGB(255, 217, 10, 172),
-                  width: 3,
-                ),
-              ),
-              child: Center(
-                child: Text(
-                  widget.data.climbTimer.elapsed.inSeconds.toString(),
-                  style: const TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: Color.fromARGB(255, 217, 10, 172),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      if (widget.data.climbTimer.isRunning) {
-                        widget.data.climbTimer.stop();
-                        widget.data.climbTime = widget.data.climbTimer.elapsed.inSeconds;
-                        _isClimbTimerRunning = false;
-                      } else {
-                        widget.data.climbTimer.start();
-                        _isClimbTimerRunning = true;
-                        // Update the UI every second while timer is running
-                        _updateTimer();
-                      }
-                    });
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _isClimbTimerRunning 
-                        ? Colors.red 
-                        : Colors.green,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 12,
-                    ),
-                  ),
-                  child: Text(
-                    _isClimbTimerRunning ? 'STOP' : 'START',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      widget.data.climbTimer.reset();
-                      widget.data.climbTime = 0;
-                      _isClimbTimerRunning = false;
-                    });
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orange,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 12,
-                    ),
-                  ),
-                  child: const Text(
-                    'RESET',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   void _updateTimer() {
     if (_isClimbTimerRunning && mounted) {
-      Future.delayed(const Duration(seconds: 1), () {
+      Future.delayed(const Duration(seconds: 0), () {
         if (mounted) {
           setState(() {
             widget.data.climbTime = widget.data.climbTimer.elapsed.inSeconds;
