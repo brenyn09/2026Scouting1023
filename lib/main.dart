@@ -1030,7 +1030,7 @@ class _TeleopPageState extends State<TeleopPage> {
       Future.delayed(const Duration(seconds: 0), () {
         if (mounted) {
           setState(() {
-            widget.data.climbTime = widget.data.climbTimer.elapsed.inSeconds;
+            widget.data.climbTime = widget.data.climbTimer.elapsed.inMilliseconds;
           });
           if (_isClimbTimerRunning) {
             _updateTimer();
