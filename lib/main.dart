@@ -5,6 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+dynamic apiUrl = 'https://www.thebluealliance.com/api/v3/event/2026scouting1023/matches/simple';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
