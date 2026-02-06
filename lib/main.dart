@@ -56,7 +56,7 @@ class ScoutData {
   bool wasDefended = false;
   bool feeder = false;
   bool scorer = false;
-  bool defence = false;
+  bool defender = false;
 
   ScoutData({
     required this.initials,
@@ -86,7 +86,7 @@ class ScoutData {
       excel.TextCellValue(wasDefended ? 'Yes' : 'No'),
       excel.TextCellValue(feeder ? 'Yes' : 'No'),
       excel.TextCellValue(scorer ? 'Yes' : 'No'),
-      excel.TextCellValue(defence ? 'Yes' : 'No'),
+      excel.TextCellValue(defender ? 'Yes' : 'No'),
       excel.TextCellValue(DateTime.now().toIso8601String().substring(0, 19)),
     ];
   }
@@ -1333,17 +1333,17 @@ class _EndgamePageState extends State<EndgamePage> {
                           style: TextStyle(
                               fontSize: 50, fontWeight: FontWeight.w900)),
 
-                      _buildCheckbox('feeder', widget.data.feeder,
+                      _buildCheckbox('Feeder', widget.data.feeder,
                           (val) {
                         setState(() => widget.data.feeder = val ?? false);
                       }),
-                      _buildCheckbox('scorer', widget.data.scorer,
+                      _buildCheckbox('Scorer', widget.data.scorer,
                           (val) {
                         setState(() => widget.data.scorer = val ?? false);
                       }),
-                      _buildCheckbox('defence', widget.data.defence,
+                      _buildCheckbox('Defense', widget.data.defender,
                           (val) {
-                        setState(() => widget.data.defence = val ?? false);
+                        setState(() => widget.data.defender = val ?? false);
                       }),
                       const SizedBox(height: 40),
                       SizedBox(
