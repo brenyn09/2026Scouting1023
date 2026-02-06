@@ -105,6 +105,7 @@ class ScoutData {
       excel.TextCellValue('Permanently Immobilized'),
       excel.TextCellValue('Temporarily Immobilized'),
       excel.TextCellValue('Was defended'),
+      excel.TextCellValue('Robot Role'),
     ];
   }
 }
