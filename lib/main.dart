@@ -54,9 +54,7 @@ class ScoutData {
   bool permanentlyImmobilized = false;
   bool temporarilyImmobilized = false;
   bool wasDefended = false;
-  bool feeder = false;
-  bool scorer = false;
-  bool defender = false;
+  List<String> robotRoles = [];
 
   ScoutData({
     required this.initials,
@@ -84,10 +82,7 @@ class ScoutData {
       excel.TextCellValue(permanentlyImmobilized ? 'Yes' : 'No'),
       excel.TextCellValue(temporarilyImmobilized ? 'Yes' : 'No'),
       excel.TextCellValue(wasDefended ? 'Yes' : 'No'),
-      excel.TextCellValue(feeder ? 'Yes' : 'No'),
-      excel.TextCellValue(scorer ? 'Yes' : 'No'),
-      excel.TextCellValue(defender ? 'Yes' : 'No'),
-      excel.TextCellValue(DateTime.now().toIso8601String().substring(0, 19)),
+      excel.TextCellValue(robotRoles.join(', ')),
     ];
   }
 
@@ -110,7 +105,6 @@ class ScoutData {
       excel.TextCellValue('Permanently Immobilized'),
       excel.TextCellValue('Temporarily Immobilized'),
       excel.TextCellValue('Was defended'),
-      excel.TextCellValue('Timestamp'),
     ];
   }
 }
@@ -1329,22 +1323,8 @@ class _EndgamePageState extends State<EndgamePage> {
                           (val) {
                         setState(() => widget.data.wasDefended = val ?? false);
                       }),
-                      const Text('Robot Role',
-                          style: TextStyle(
-                              fontSize: 50, fontWeight: FontWeight.w900)),
-
-                      _buildCheckbox('Feeder', widget.data.feeder,
-                          (val) {
-                        setState(() => widget.data.feeder = val ?? false);
-                      }),
-                      _buildCheckbox('Scorer', widget.data.scorer,
-                          (val) {
-                        setState(() => widget.data.scorer = val ?? false);
-                      }),
-                      _buildCheckbox('Defense', widget.data.defender,
-                          (val) {
-                        setState(() => widget.data.defender = val ?? false);
-                      }),
+                      const SizedBox(height: 20),
+                      _buildRobotRolesSelector(),
                       const SizedBox(height: 40),
                       SizedBox(
                         width: double.infinity,
@@ -1395,7 +1375,64 @@ class _EndgamePageState extends State<EndgamePage> {
       ),
     );
   }
-
+Widget _buildRobotRolesSelector() {
+    return Card(
+      elevation: 5,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Robot Role',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
+            CheckboxListTile(
+              title: const Text('Scorer', style: TextStyle(fontSize: 20)),
+              value: widget.data.robotRoles.contains('Scorer'),
+              onChanged: (bool? value) {
+                setState(() {
+                  if (value == true) {
+                    widget.data.robotRoles.add('Scorer');
+                  } else {
+                    widget.data.robotRoles.remove('Scorer');
+                  }
+                });
+              },
+              activeColor: Colors.green,
+            ),
+            CheckboxListTile(
+              title: const Text('Feeder', style: TextStyle(fontSize: 20)),
+              value: widget.data.robotRoles.contains('Feeder'),
+              onChanged: (bool? value) {
+                setState(() {
+                  if (value == true) {
+                    widget.data.robotRoles.add('Feeder');
+                  } else {
+                    widget.data.robotRoles.remove('Feeder');
+                  }
+                });
+              },
+              activeColor: Colors.green,
+            ),
+            CheckboxListTile(
+              title: const Text('Defense', style: TextStyle(fontSize: 20)),
+              value: widget.data.robotRoles.contains('Defense'),
+              onChanged: (bool? value) {
+                setState(() {
+                  if (value == true) {
+                    widget.data.robotRoles.add('Defense');
+                  } else {
+                    widget.data.robotRoles.remove('Defense');
+                  }
+                });
+              },
+              activeColor: Colors.green,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
   Widget _buildInfoCard() {
     return Card(
       elevation: 5,
