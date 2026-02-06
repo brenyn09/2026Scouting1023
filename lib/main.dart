@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:excel/excel.dart' as excel;
 import 'package:file_saver/file_saver.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:path_provider/path_provider.dart';
@@ -45,8 +44,6 @@ class ScoutData {
   int teleopFuelScored = 0;
   int teleopFuelFed = 0;
   int defense = 0;
-  int climbTime = 0;
-  final Stopwatch climbTimer = Stopwatch();
 
   // Endgame
   String climbLevel = 'None'; // None, Failed, L1, L2, L3
@@ -76,7 +73,6 @@ class ScoutData {
       excel.IntCellValue(teleopFuelScored),
       excel.IntCellValue(teleopFuelFed),
       excel.IntCellValue(defense),
-      excel.IntCellValue(climbTime),
       excel.TextCellValue(climbLevel),
       excel.TextCellValue(broke ? 'Yes' : 'No'),
       excel.TextCellValue(permanentlyImmobilized ? 'Yes' : 'No'),
@@ -99,7 +95,6 @@ class ScoutData {
       excel.TextCellValue('T Fuel Scored'),
       excel.TextCellValue('T Fuel Fed'),
       excel.TextCellValue('Defense'),
-      excel.TextCellValue('Climb Time (seconds)'),
       excel.TextCellValue('Climb Level'),
       excel.TextCellValue('Broke'),
       excel.TextCellValue('Permanently Immobilized'),
@@ -923,14 +918,6 @@ class TeleopPage extends StatefulWidget {
 }
 
 class _TeleopPageState extends State<TeleopPage> {
-  bool _isClimbTimerRunning = false;
-  
-  @override
-  void dispose() {
-    widget.data.climbTimer.stop();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -967,53 +954,22 @@ class _TeleopPageState extends State<TeleopPage> {
                         setState(() => widget.data.teleopFuelFed = val);
                       }, const Color.fromARGB(255, 217, 10, 172)),
                       const SizedBox(height: 20),
-                      Row(children: [
-                        Expanded(
-                          child: _buildActionButton(
-                            'Climb Time',
-                            Icons.lock_clock,
-                            widget.data.climbTime,
-                            const Color.fromARGB(255, 217, 10, 172),
-                            () {
-                    setState(() {
-                      if (widget.data.climbTimer.isRunning) {
-                        const Color.fromARGB(255, 217, 10, 172);
-                        widget.data.climbTimer.stop();
-                        widget.data.climbTime = widget.data.climbTimer.elapsed.inSeconds;
-                        _isClimbTimerRunning = false;
-                      } else {
-                        const Color.fromARGB(255, 9, 255, 0);
-                        widget.data.climbTimer.start();
-                        _isClimbTimerRunning = true;
-                        // Update the UI every second while timer is running
-                        _updateTimer();
-                      }
-                    });
-                  },
-                          ),
-                        ),
-                        Expanded(
-                          child: _buildActionButton(
-                            'Defense',
-                            Icons.shield,
-                            widget.data.defense,
-                            const Color.fromARGB(255, 217, 10, 172),
-                            () {
-                              setState(() => widget.data.defense++);
-                            },
-                          ),
-                        ),
-                      ])
+                      Row( children: [ Expanded(
+                      child: _buildActionButton(
+                        'Defense',
+                        Icons.shield,
+                        widget.data.defense,
+                        const Color.fromARGB(255, 217, 10, 172),
+                        () {
+                          setState(() => widget.data.defense++);
+                        },
+                      ),
+                      )])
                     ],
                   ),
                 ),
               ),
               _buildNavButtons(() => Navigator.pop(context), () {
-                // Stop the timer and save the final time before navigating
-                if (widget.data.climbTimer.isRunning) {
-                  widget.data.climbTimer.stop();
-                  widget.data.climbTime = widget.data.climbTimer.elapsed.inSeconds;
-                }
                 Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -1024,21 +980,6 @@ class _TeleopPageState extends State<TeleopPage> {
         ),
       ),
     );
-  }
-
-  void _updateTimer() {
-    if (_isClimbTimerRunning && mounted) {
-      Future.delayed(const Duration(seconds: 0), () {
-        if (mounted) {
-          setState(() {
-            widget.data.climbTime = widget.data.climbTimer.elapsed.inMilliseconds;
-          });
-          if (_isClimbTimerRunning) {
-            _updateTimer();
-          }
-        }
-      });
-    }
   }
 
   Widget _buildInfoCard() {
@@ -1325,7 +1266,7 @@ class _EndgamePageState extends State<EndgamePage> {
                         setState(() => widget.data.wasDefended = val ?? false);
                       }),
                       const SizedBox(height: 20),
-                      _buildRobotRolesSelector(),
+                      _buildRobotRoleSelector(),
                       const SizedBox(height: 40),
                       SizedBox(
                         width: double.infinity,
@@ -1376,7 +1317,8 @@ class _EndgamePageState extends State<EndgamePage> {
       ),
     );
   }
-Widget _buildRobotRolesSelector() {
+
+  Widget _buildRobotRoleSelector() {
     return Card(
       elevation: 5,
       child: Padding(
@@ -1388,20 +1330,6 @@ Widget _buildRobotRolesSelector() {
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
             CheckboxListTile(
-              title: const Text('Scorer', style: TextStyle(fontSize: 20)),
-              value: widget.data.robotRoles.contains('Scorer'),
-              onChanged: (bool? value) {
-                setState(() {
-                  if (value == true) {
-                    widget.data.robotRoles.add('Scorer');
-                  } else {
-                    widget.data.robotRoles.remove('Scorer');
-                  }
-                });
-              },
-              activeColor: Colors.green,
-            ),
-            CheckboxListTile(
               title: const Text('Feeder', style: TextStyle(fontSize: 20)),
               value: widget.data.robotRoles.contains('Feeder'),
               onChanged: (bool? value) {
@@ -1410,6 +1338,20 @@ Widget _buildRobotRolesSelector() {
                     widget.data.robotRoles.add('Feeder');
                   } else {
                     widget.data.robotRoles.remove('Feeder');
+                  }
+                });
+              },
+              activeColor: Colors.green,
+            ),
+            CheckboxListTile(
+              title: const Text('Scorer', style: TextStyle(fontSize: 20)),
+              value: widget.data.robotRoles.contains('Scorer'),
+              onChanged: (bool? value) {
+                setState(() {
+                  if (value == true) {
+                    widget.data.robotRoles.add('Scorer');
+                  } else {
+                    widget.data.robotRoles.remove('Scorer');
                   }
                 });
               },
@@ -1434,6 +1376,7 @@ Widget _buildRobotRolesSelector() {
       ),
     );
   }
+
   Widget _buildInfoCard() {
     return Card(
       elevation: 5,
