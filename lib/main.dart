@@ -8,7 +8,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-dynamic apiUrl = 'https://www.thebluealliance.com/api/v3/event/2026scouting1023/matches/simple';
+dynamic apiUrl =
+    'https://www.thebluealliance.com/api/v3/'; //key: KpymR5pSlmnb7unCIORN3QHS0kpFA2J5KLa4znriGhtDXR5OPSuinxrhH9VyZfq5
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -209,6 +210,15 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  // Future<http.Response> getMatchData() async { TODO: Add get match data button
+  //   final response = await http.get(Uri.parse(apiUrl));
+  //   if (response.statusCode == 200) {
+  //     return response;
+  //   } else {
+  //     throw Exception('Failed to load match data');
+  //   }
+  // }
+
   Future<String?> _showPasswordDialog(String action) async {
     final passwordController = TextEditingController();
 
@@ -307,7 +317,8 @@ class _HomePageState extends State<HomePage> {
                               style: TextStyle(
                                   fontSize: 22, fontWeight: FontWeight.bold)),
                           style: OutlinedButton.styleFrom(
-                            foregroundColor: const Color.fromARGB(255, 255, 0, 0),
+                            foregroundColor:
+                                const Color.fromARGB(255, 255, 0, 0),
                             side: const BorderSide(
                                 color: Color.fromARGB(255, 211, 23, 23),
                                 width: 2),
@@ -328,7 +339,8 @@ class _HomePageState extends State<HomePage> {
                               style: TextStyle(
                                   fontSize: 22, fontWeight: FontWeight.bold)),
                           style: OutlinedButton.styleFrom(
-                            foregroundColor: const Color.fromARGB(255, 255, 0, 0),
+                            foregroundColor:
+                                const Color.fromARGB(255, 255, 0, 0),
                             side: const BorderSide(
                                 color: Color.fromARGB(255, 211, 23, 23),
                                 width: 2),
@@ -337,6 +349,27 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                       ),
+                      // const SizedBox(height: 20), TODO: Add get match data button
+                      // SizedBox(
+                      //   width: 350,
+                      //   height: 70,
+                      //   child: OutlinedButton.icon(
+                      //     onPressed: getMatchData,
+                      //     icon: const Icon(Icons.data_usage, size: 28),
+                      //     label: const Text('Get Match Data',
+                      //         style: TextStyle(
+                      //             fontSize: 22, fontWeight: FontWeight.bold)),
+                      //     style: OutlinedButton.styleFrom(
+                      //       foregroundColor:
+                      //           const Color.fromARGB(255, 255, 0, 0),
+                      //       side: const BorderSide(
+                      //           color: Color.fromARGB(255, 211, 23, 23),
+                      //           width: 2),
+                      //       shape: RoundedRectangleBorder(
+                      //           borderRadius: BorderRadius.circular(50)),
+                      //     ),
+                      //   ),
+                      // ),
                     ]),
               ),
             )));
@@ -357,7 +390,6 @@ class _SignInPageState extends State<SignInPage> {
   // Static variables to persist data
   static String _savedInitials = '';
   static String _savedMatch = '1';
-  static String _savedTeam = '';
   static String? _savedAlliance;
 
   @override
@@ -366,7 +398,7 @@ class _SignInPageState extends State<SignInPage> {
     // Initialize controllers with saved data
     _initialsController = TextEditingController(text: _savedInitials);
     _matchController = TextEditingController(text: _savedMatch);
-    _teamController = TextEditingController(text: _savedTeam);
+    _teamController = TextEditingController();
     _alliance = _savedAlliance;
   }
 
@@ -381,7 +413,6 @@ class _SignInPageState extends State<SignInPage> {
   void _saveCurrentData() {
     _savedInitials = _initialsController.text;
     _savedMatch = _matchController.text;
-    _savedTeam = _teamController.text;
     _savedAlliance = _alliance;
   }
 
@@ -502,7 +533,8 @@ class _SignInPageState extends State<SignInPage> {
                           style: TextStyle(
                               fontSize: 22, fontWeight: FontWeight.bold)),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color.fromARGB(255, 141, 36, 221),
+                        backgroundColor:
+                            const Color.fromARGB(255, 141, 36, 221),
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(
                             horizontal: 32, vertical: 20),
@@ -517,7 +549,8 @@ class _SignInPageState extends State<SignInPage> {
                               fontSize: 22, fontWeight: FontWeight.bold)),
                       icon: const Icon(Icons.arrow_forward, size: 28),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color.fromARGB(255, 141, 36, 221),
+                        backgroundColor:
+                            const Color.fromARGB(255, 141, 36, 221),
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(
                             horizontal: 32, vertical: 20),
@@ -958,17 +991,19 @@ class _TeleopPageState extends State<TeleopPage> {
                         setState(() => widget.data.teleopFuelFed = val);
                       }, const Color.fromARGB(255, 217, 10, 172)),
                       const SizedBox(height: 20),
-                      Row( children: [ Expanded(
-                      child: _buildActionButton(
-                        'Defense',
-                        Icons.shield,
-                        widget.data.defense,
-                        const Color.fromARGB(255, 217, 10, 172),
-                        () {
-                          setState(() => widget.data.defense++);
-                        },
-                      ),
-                      )])
+                      Row(children: [
+                        Expanded(
+                          child: _buildActionButton(
+                            'Defense',
+                            Icons.shield,
+                            widget.data.defense,
+                            const Color.fromARGB(255, 217, 10, 172),
+                            () {
+                              setState(() => widget.data.defense++);
+                            },
+                          ),
+                        )
+                      ])
                     ],
                   ),
                 ),
