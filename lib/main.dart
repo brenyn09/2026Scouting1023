@@ -7,9 +7,12 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:async';
 
 dynamic apiUrl =
     'https://www.thebluealliance.com/api/v3/'; //key: KpymR5pSlmnb7unCIORN3QHS0kpFA2J5KLa4znriGhtDXR5OPSuinxrhH9VyZfq5
+// schedule format: 
+String event_key = '2026';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -210,14 +213,18 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  // Future<http.Response> getMatchData() async { TODO: Add get match data button
-  //   final response = await http.get(Uri.parse(apiUrl));
-  //   if (response.statusCode == 200) {
-  //     return response;
-  //   } else {
-  //     throw Exception('Failed to load match data');
-  //   }
-  // }
+  //TODO: Add get match data button
+  Future<http.Response> getMatchData() async {
+    final response = await http.get(Uri.parse(apiUrl/'event'/event_key/'matches/simple'), 
+    headers: {
+      'X-TBA-Auth-Key': 'KpymR5pSlmnb7unCIORN3QHS0kpFA2J5KLa4znriGhtDXR5OPSuinxrhH9VyZfq5',
+    });
+    if (response.statusCode == 200) {
+      return response;
+    } else {
+      throw Exception('Failed to load match data');
+    }
+  }
 
   Future<String?> _showPasswordDialog(String action) async {
     final passwordController = TextEditingController();
@@ -349,7 +356,8 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                       ),
-                      // const SizedBox(height: 20), TODO: Add get match data button
+                      //TODO: Add get match data button
+                      // const SizedBox(height: 20), 
                       // SizedBox(
                       //   width: 350,
                       //   height: 70,
