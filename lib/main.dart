@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:excel/excel.dart' as excel;
 import 'package:file_saver/file_saver.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -11,9 +12,11 @@ import 'dart:async';
 
 dynamic apiUrl =
     'https://www.thebluealliance.com/api/v3/'; //key: KpymR5pSlmnb7unCIORN3QHS0kpFA2J5KLa4znriGhtDXR5OPSuinxrhH9VyZfq5
-// schedule format: 
-String event_key = '2026';
-
+// schedule format:
+String eventKey = '2015mibed';
+  String matchData = '';
+  List teamNumbers = [];
+  int index = 0;
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await SystemChrome.setPreferredOrientations([
@@ -22,6 +25,7 @@ Future<void> main() async {
   ]);
   runApp(const MyApp());
 }
+
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -215,15 +219,56 @@ class _HomePageState extends State<HomePage> {
 
   //TODO: Add get match data button
   Future<http.Response> getMatchData() async {
-    final response = await http.get(Uri.parse(apiUrl/'event'/event_key/'matches/simple'), 
-    headers: {
-      'X-TBA-Auth-Key': 'KpymR5pSlmnb7unCIORN3QHS0kpFA2J5KLa4znriGhtDXR5OPSuinxrhH9VyZfq5',
-    });
+    final response = await http.get(
+        Uri.parse('$apiUrl/event/$eventKey/matches/simple'),
+        headers: {
+          'X-TBA-Auth-Key':
+              'KpymR5pSlmnb7unCIORN3QHS0kpFA2J5KLa4znriGhtDXR5OPSuinxrhH9VyZfq5',
+        });
     if (response.statusCode == 200) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(response.body),
+          backgroundColor: Colors.green,
+        ),
+      );
+      matchData = response.body;
+      teamNumbers = matchData.split('frc');
       return response;
     } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to load match data'),
+          backgroundColor: Colors.red,
+        ),
+      );
       throw Exception('Failed to load match data');
     }
+  }
+
+  Future<void> showMatchData() async {
+    if (matchData.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No match data available')),
+      );
+      return;
+    }
+
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        content: SingleChildScrollView(
+          child: Text(teamNumbers[index], style: const TextStyle(fontSize: 12)),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('CLOSE'),
+          ),
+        ],
+      ),
+    );
+    index = index + 1;
   }
 
   Future<String?> _showPasswordDialog(String action) async {
@@ -357,27 +402,48 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
                       //TODO: Add get match data button
-                      // const SizedBox(height: 20), 
-                      // SizedBox(
-                      //   width: 350,
-                      //   height: 70,
-                      //   child: OutlinedButton.icon(
-                      //     onPressed: getMatchData,
-                      //     icon: const Icon(Icons.data_usage, size: 28),
-                      //     label: const Text('Get Match Data',
-                      //         style: TextStyle(
-                      //             fontSize: 22, fontWeight: FontWeight.bold)),
-                      //     style: OutlinedButton.styleFrom(
-                      //       foregroundColor:
-                      //           const Color.fromARGB(255, 255, 0, 0),
-                      //       side: const BorderSide(
-                      //           color: Color.fromARGB(255, 211, 23, 23),
-                      //           width: 2),
-                      //       shape: RoundedRectangleBorder(
-                      //           borderRadius: BorderRadius.circular(50)),
-                      //     ),
-                      //   ),
-                      // ),
+                      const SizedBox(height: 20),
+                      SizedBox(
+                        width: 350,
+                        height: 70,
+                        child: OutlinedButton.icon(
+                          onPressed: getMatchData,
+                          icon: const Icon(Icons.data_usage, size: 28),
+                          label: const Text('Get Match Data',
+                              style: TextStyle(
+                                  fontSize: 22, fontWeight: FontWeight.bold)),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor:
+                                const Color.fromARGB(255, 255, 0, 0),
+                            side: const BorderSide(
+                                color: Color.fromARGB(255, 211, 23, 23),
+                                width: 2),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(50)),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      SizedBox(
+                        width: 350,
+                        height: 70,
+                        child: OutlinedButton.icon(
+                          onPressed: showMatchData,
+                          icon: const Icon(Icons.data_usage, size: 28),
+                          label: const Text('Show Match Data',
+                              style: TextStyle(
+                                  fontSize: 22, fontWeight: FontWeight.bold)),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor:
+                                const Color.fromARGB(255, 255, 0, 0),
+                            side: const BorderSide(
+                                color: Color.fromARGB(255, 211, 23, 23),
+                                width: 2),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(50)),
+                          ),
+                        ),
+                      ),
                     ]),
               ),
             )));
