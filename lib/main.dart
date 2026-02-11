@@ -86,8 +86,8 @@ class ScoutData {
       excel.TextCellValue(pickupLocations.join(', ')),//words
       excel.IntCellValue(teleopFuelScored),
       excel.IntCellValue(teleopFuelFed),
-      excel.IntCellValue(defense),
-      excel.TextCellValue(levelValues.elementAt(levels.indexOf(climbLevel))),
+      excel.IntCellValue(defense),//#
+      excel.TextCellValue(levelValues.elementAt(levels.indexOf(climbLevel))),//#
       excel.TextCellValue(broke ? '1' : '0'),
       excel.TextCellValue(permanentlyImmobilized ? '1' : '0'),
       excel.TextCellValue(temporarilyImmobilized ? '1' : '0'),
