@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:excel/excel.dart' as excel;
 import 'package:file_saver/file_saver.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -8,8 +9,13 @@ import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-dynamic apiUrl =
-    'https://www.thebluealliance.com/api/v3/'; //key: KpymR5pSlmnb7unCIORN3QHS0kpFA2J5KLa4znriGhtDXR5OPSuinxrhH9VyZfq5
+List red1 = ['1r1','2r1','3r1'];
+List red2 = ['1r2','2r2','3r2'];
+List red3 = ['1r3','2r3','3r3'];
+List blue1 = ['1b1','2b1','3b1'];
+List blue2 = ['1b2','2b2','3b2'];
+List blue3 = ['1b3','2b3','3b3'];
+int index = 0;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -210,15 +216,6 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  // Future<http.Response> getMatchData() async { TODO: Add get match data button
-  //   final response = await http.get(Uri.parse(apiUrl));
-  //   if (response.statusCode == 200) {
-  //     return response;
-  //   } else {
-  //     throw Exception('Failed to load match data');
-  //   }
-  // }
-
   Future<String?> _showPasswordDialog(String action) async {
     final passwordController = TextEditingController();
 
@@ -349,27 +346,6 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                       ),
-                      // const SizedBox(height: 20), TODO: Add get match data button
-                      // SizedBox(
-                      //   width: 350,
-                      //   height: 70,
-                      //   child: OutlinedButton.icon(
-                      //     onPressed: getMatchData,
-                      //     icon: const Icon(Icons.data_usage, size: 28),
-                      //     label: const Text('Get Match Data',
-                      //         style: TextStyle(
-                      //             fontSize: 22, fontWeight: FontWeight.bold)),
-                      //     style: OutlinedButton.styleFrom(
-                      //       foregroundColor:
-                      //           const Color.fromARGB(255, 255, 0, 0),
-                      //       side: const BorderSide(
-                      //           color: Color.fromARGB(255, 211, 23, 23),
-                      //           width: 2),
-                      //       shape: RoundedRectangleBorder(
-                      //           borderRadius: BorderRadius.circular(50)),
-                      //     ),
-                      //   ),
-                      // ),
                     ]),
               ),
             )));
@@ -398,7 +374,7 @@ class _SignInPageState extends State<SignInPage> {
     // Initialize controllers with saved data
     _initialsController = TextEditingController(text: _savedInitials);
     _matchController = TextEditingController(text: _savedMatch);
-    _teamController = TextEditingController();
+    _teamController = TextEditingController(text: red1.elementAtOrNull(index));
     _alliance = _savedAlliance;
   }
 
@@ -508,12 +484,31 @@ class _SignInPageState extends State<SignInPage> {
                         children: [
                           Expanded(
                             child: _buildAllianceButton(
-                                'Red', Colors.red.shade700),
+                                'Red1', Colors.red.shade700),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: _buildAllianceButton(
+                                'Red2', Colors.red.shade700),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: _buildAllianceButton(
+                                'Red3', Colors.red.shade700),
                           ),
                           const SizedBox(width: 20),
                           Expanded(
                             child: _buildAllianceButton(
-                                'Blue', Colors.blue.shade700),
+                                'Blue1', Colors.blue.shade700),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: _buildAllianceButton(
+                                'Blue2', Colors.blue.shade700),
+                          ),
+                          const SizedBox(width: 10),Expanded(
+                            child: _buildAllianceButton(
+                                'Blue3', Colors.blue.shade700),
                           ),
                         ],
                       ),
