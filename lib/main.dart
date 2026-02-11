@@ -9,12 +9,12 @@ import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-List red1 = ['1r1','2r1','3r1'];
-List red2 = ['1r2','2r2','3r2'];
-List red3 = ['1r3','2r3','3r3'];
-List blue1 = ['1b1','2b1','3b1'];
-List blue2 = ['1b2','2b2','3b2'];
-List blue3 = ['1b3','2b3','3b3'];
+List red1 = ['1r1', '2r1', '3r1'];
+List red2 = ['1r2', '2r2', '3r2'];
+List red3 = ['1r3', '2r3', '3r3'];
+List blue1 = ['1b1', '2b1', '3b1'];
+List blue2 = ['1b2', '2b2', '3b2'];
+List blue3 = ['1b3', '2b3', '3b3'];
 int index = 0;
 
 Future<void> main() async {
@@ -374,8 +374,28 @@ class _SignInPageState extends State<SignInPage> {
     // Initialize controllers with saved data
     _initialsController = TextEditingController(text: _savedInitials);
     _matchController = TextEditingController(text: _savedMatch);
-    _teamController = TextEditingController(text: red1.elementAtOrNull(index));
     _alliance = _savedAlliance;
+    if (_savedAlliance == 'Red1') {
+      _teamController =
+          TextEditingController(text: red1.elementAtOrNull(index));
+    } else if (_savedAlliance == 'Red2') {
+      _teamController =
+          TextEditingController(text: red2.elementAtOrNull(index));
+    } else if (_savedAlliance == 'Red3') {
+      _teamController =
+          TextEditingController(text: red3.elementAtOrNull(index));
+    } else if (_savedAlliance == 'Blue1') {
+      _teamController =
+          TextEditingController(text: blue1.elementAtOrNull(index));
+    } else if (_savedAlliance == 'Blue2') {
+      _teamController =
+          TextEditingController(text: blue2.elementAtOrNull(index));
+    } else if (_savedAlliance == 'Blue3') {
+      _teamController =
+          TextEditingController(text: blue3.elementAtOrNull(index));
+    } else {
+      _teamController = TextEditingController();
+    }
   }
 
   @override
@@ -506,7 +526,8 @@ class _SignInPageState extends State<SignInPage> {
                             child: _buildAllianceButton(
                                 'Blue2', Colors.blue.shade700),
                           ),
-                          const SizedBox(width: 10),Expanded(
+                          const SizedBox(width: 10),
+                          Expanded(
                             child: _buildAllianceButton(
                                 'Blue3', Colors.blue.shade700),
                           ),
@@ -1584,6 +1605,7 @@ class _EndgamePageState extends State<EndgamePage> {
 
       // Increment the match number for the next entry
       _SignInPageState._savedMatch = (widget.data.matchNumber + 1).toString();
+      index = widget.data.matchNumber;
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
