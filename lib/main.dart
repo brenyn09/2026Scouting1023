@@ -16,6 +16,8 @@ List blue1 = ['1b1', '2b1', '3b1'];
 List blue2 = ['1b2', '2b2', '3b2'];
 List blue3 = ['1b3', '2b3', '3b3'];
 int index = 0;
+final levels = ['None', 'Failed', 'L1', 'L2', 'L3'];
+final levelValues = ['-0', '0', '10', '20', '30'];
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -73,23 +75,24 @@ class ScoutData {
 
   List<excel.CellValue> toRow() {
     return [
+      
       excel.TextCellValue(initials),
       excel.IntCellValue(matchNumber),
       excel.TextCellValue(teamNumber),
       excel.TextCellValue(alliance),
       excel.IntCellValue(autoFuelScored),
       excel.IntCellValue(autoFuelFed),
-      excel.TextCellValue(climb ? 'Yes' : 'No'),
-      excel.TextCellValue(pickupLocations.join(', ')),
+      excel.TextCellValue(climb ? '1' : '0'),
+      excel.TextCellValue(pickupLocations.join(', ')),//words
       excel.IntCellValue(teleopFuelScored),
       excel.IntCellValue(teleopFuelFed),
       excel.IntCellValue(defense),
-      excel.TextCellValue(climbLevel),
-      excel.TextCellValue(broke ? 'Yes' : 'No'),
-      excel.TextCellValue(permanentlyImmobilized ? 'Yes' : 'No'),
-      excel.TextCellValue(temporarilyImmobilized ? 'Yes' : 'No'),
-      excel.TextCellValue(wasDefended ? 'Yes' : 'No'),
-      excel.TextCellValue(robotRoles.join(', ')),
+      excel.TextCellValue(levelValues.elementAt(levels.indexOf(climbLevel))),
+      excel.TextCellValue(broke ? '1' : '0'),
+      excel.TextCellValue(permanentlyImmobilized ? '1' : '0'),
+      excel.TextCellValue(temporarilyImmobilized ? '1' : '0'),
+      excel.TextCellValue(wasDefended ? '1' : '0'),
+      excel.TextCellValue(robotRoles.join(', ')),//words
     ];
   }
 
@@ -1465,7 +1468,7 @@ class _EndgamePageState extends State<EndgamePage> {
   }
 
   Widget _buildClimbLevel() {
-    final levels = ['None', 'Failed', 'L1', 'L2', 'L3'];
+    
     return Card(
       elevation: 5,
       child: Padding(
