@@ -1,13 +1,10 @@
 import 'dart:io';
 import 'package:excel/excel.dart' as excel;
 import 'package:file_saver/file_saver.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 
 List red1 = [
 '4998','6067','5235','245','5641','70','5460','10667','5641','9697','9207','494','70','9776','9697','5235','2137','7784','894','27','9245','4994','1','1498','6631','5150','8193','8385','5282','5697','10659','8193','4994','5282','3534','27','5697','70','1504','494','245','1','5260','1498','5084','9245','7784','894','1504','7195','5234','4998','573','4994','7195','5260','10668','5235','2145','9648','9776','10668','27','9757','9648','10667','494','9776','2145','8193','7195','7784','5260','9207','910','10667','573','9245','245','1504',
