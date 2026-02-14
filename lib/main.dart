@@ -646,7 +646,7 @@ class _SignInPageState extends State<SignInPage> {
 
     // Parse match number as int
     final matchNumber = int.tryParse(_matchController.text);
-    if (matchNumber == null) {
+    if (matchNumber == null|| matchNumber<1) {
       ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Match number must be a valid number')));
       return;
@@ -1040,32 +1040,9 @@ class _TeleopPageState extends State<TeleopPage> {
                         setState(() => widget.data.teleopFuelFed = val);
                       }, const Color.fromARGB(255, 217, 10, 172)),
                       const SizedBox(height: 20),
-                      Row(children: [
-                        Expanded(
-                          child: _buildActionButton(
-                            'Defense -',
-                            Icons.shield,
-                            widget.data.defense,
-                            const Color.fromARGB(255, 217, 10, 10),
-                            () {
-                              if(widget.data.defense>0){
-                              setState(() => widget.data.defense--);
-                              }
-                            },
-                          ),
-                        ),
-                        Expanded(
-                          child: _buildActionButton(
-                            'Defense +',
-                            Icons.shield,
-                            widget.data.defense,
-                            const Color.fromARGB(255, 58, 217, 10),
-                            () {
-                              setState(() => widget.data.defense++);
-                            },
-                          ),
-                        ),
-                      ])
+                      _buildCounter('Defense', widget.data.defense, (val) {
+                        setState(() => widget.data.defense = val);
+                      }, const Color.fromARGB(255, 217, 10, 172)),
                     ],
                   ),
                 ),
@@ -1112,6 +1089,63 @@ class _TeleopPageState extends State<TeleopPage> {
         Text(value,
             style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
       ],
+    );
+  }
+  Widget _buildCounter(
+      String title, int value, Function(int) onChanged, Color color) {
+    return Card(
+      elevation: 5,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            Text(title,
+                style: TextStyle(
+                    fontSize: 26, fontWeight: FontWeight.bold, color: color)),
+            const SizedBox(height: 16),
+            // Main counter with MUCH BIGGER buttons
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Subtract buttons row
+                Row(
+                  children: [
+                    _counterButton('-1', () {
+                      if (value >= 1) onChanged(value - 1);
+                    }, Colors.red.shade700),
+                  ],
+                ),
+                const SizedBox(width: 50),
+                // Display value
+                Container(
+                  width: 160,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(15),
+                    border: Border.all(color: color, width: 3),
+                  ),
+                  child: Center(
+                    child: Text(value.toString(),
+                        style: TextStyle(
+                            fontSize: 64,
+                            fontWeight: FontWeight.bold,
+                            color: color)),
+                  ),
+                ),
+                const SizedBox(width: 50),
+                // Add buttons row
+                Row(
+                  children: [
+                    _counterButton('+1', () => onChanged(value + 1),
+                        Colors.green.shade700),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -1186,7 +1220,27 @@ class _TeleopPageState extends State<TeleopPage> {
       ),
     );
   }
-
+Widget _counterButton(
+      String label, VoidCallback onPressed, Color color) {
+    return Material(
+      color: color,
+      borderRadius: BorderRadius.circular(15),
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(15),
+        child: Container(
+          width: 400,
+          height: 100,
+          alignment: Alignment.center,
+          child: Text(label,
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold)),
+        ),
+      ),
+    );
+  }
   Widget _advancedCounterButton(
       String label, VoidCallback onPressed, Color color) {
     return Material(
@@ -1197,7 +1251,7 @@ class _TeleopPageState extends State<TeleopPage> {
         borderRadius: BorderRadius.circular(15),
         child: Container(
           width: 110,
-          height: 85,
+          height: 100,
           alignment: Alignment.center,
           child: Text(label,
               style: const TextStyle(
