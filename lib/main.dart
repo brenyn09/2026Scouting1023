@@ -942,6 +942,20 @@ class _AutonomousPageState extends State<AutonomousPage> {
               },
               activeColor: Colors.green,
             ),
+            CheckboxListTile(
+              title: const Text('Alliance Zone', style: TextStyle(fontSize: 20)),
+              value: widget.data.pickupLocations.contains('Alliance Zone'),
+              onChanged: (bool? value) {
+                setState(() {
+                  if (value == true) {
+                    widget.data.pickupLocations.add('Alliance Zone');
+                  } else {
+                    widget.data.pickupLocations.remove('Alliance Zone');
+                  }
+                });
+              },
+              activeColor: Colors.green,
+            ),
           ],
         ),
       ),
@@ -1029,15 +1043,28 @@ class _TeleopPageState extends State<TeleopPage> {
                       Row(children: [
                         Expanded(
                           child: _buildActionButton(
-                            'Defense',
+                            'Defense -',
                             Icons.shield,
                             widget.data.defense,
-                            const Color.fromARGB(255, 217, 10, 172),
+                            const Color.fromARGB(255, 217, 10, 10),
+                            () {
+                              if(widget.data.defense>0){
+                              setState(() => widget.data.defense--);
+                              }
+                            },
+                          ),
+                        ),
+                        Expanded(
+                          child: _buildActionButton(
+                            'Defense +',
+                            Icons.shield,
+                            widget.data.defense,
+                            const Color.fromARGB(255, 58, 217, 10),
                             () {
                               setState(() => widget.data.defense++);
                             },
                           ),
-                        )
+                        ),
                       ])
                     ],
                   ),
