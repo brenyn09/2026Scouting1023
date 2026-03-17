@@ -56,6 +56,43 @@ class MyApp extends StatelessWidget {
   }
 }
 
+// ---------------------------------------------------------------------------
+// In-memory store — all rows live here; we only touch the file at export time
+// ---------------------------------------------------------------------------
+class ScoutStore {
+  ScoutStore._();
+  static final ScoutStore instance = ScoutStore._();
+
+  final List<List<excel.CellValue>> _rows = [];
+
+  void addRow(List<excel.CellValue> row) => _rows.add(row);
+
+  bool get hasData => _rows.isNotEmpty;
+
+  /// Serialize everything to xlsx bytes exactly once.
+  /// Returns null if there are no rows.
+  List<int>? toBytes() {
+    if (_rows.isEmpty) return null;
+
+    final excelFile = excel.Excel.createExcel();
+
+    // createExcel() always creates a default sheet – rename it cleanly.
+    final sheetName = 'Sheet1';
+    excelFile.rename(excelFile.getDefaultSheet()!, sheetName);
+    final sheet = excelFile[sheetName];
+
+    sheet.appendRow(ScoutData.getHeaders());
+    for (final row in _rows) {
+      sheet.appendRow(row);
+    }
+
+    final bytes = excelFile.save();
+    return bytes;
+  }
+
+  void clear() => _rows.clear();
+}
+
 // Data Model
 class ScoutData {
   String initials;
@@ -91,7 +128,6 @@ class ScoutData {
 
   List<excel.CellValue> toRow() {
     return [
-      
       excel.TextCellValue(initials),
       excel.IntCellValue(matchNumber),
       excel.TextCellValue(teamNumber),
@@ -99,16 +135,16 @@ class ScoutData {
       excel.IntCellValue(autoFuelScored),
       excel.IntCellValue(autoFuelFed),
       excel.TextCellValue(climb ? '1' : '0'),
-      excel.TextCellValue(pickupLocations.join(', ')),//words
+      excel.TextCellValue(pickupLocations.join(', ')),
       excel.IntCellValue(teleopFuelScored),
       excel.IntCellValue(teleopFuelFed),
-      excel.IntCellValue(defense),//#
-      excel.TextCellValue(levelValues.elementAt(levels.indexOf(climbLevel))),//#
+      excel.IntCellValue(defense),
+      excel.TextCellValue(levelValues.elementAt(levels.indexOf(climbLevel))),
       excel.TextCellValue(broke ? '1' : '0'),
       excel.TextCellValue(permanentlyImmobilized ? '1' : '0'),
       excel.TextCellValue(temporarilyImmobilized ? '1' : '0'),
       excel.TextCellValue(wasDefended ? '1' : '0'),
-      excel.TextCellValue(robotRoles.join(', ')),//words
+      excel.TextCellValue(robotRoles.join(', ')),
     ];
   }
 
@@ -149,10 +185,7 @@ class _HomePageState extends State<HomePage> {
     if (password != 'strategy1023') return;
 
     try {
-      final dir = await getApplicationDocumentsDirectory();
-      final file = File('${dir.path}/$_fileName');
-
-      if (!await file.exists()) {
+      if (!ScoutStore.instance.hasData) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('No data to export')),
@@ -161,11 +194,21 @@ class _HomePageState extends State<HomePage> {
         return;
       }
 
-      var bytes = await file.readAsBytes();
+      final bytes = ScoutStore.instance.toBytes();
+      if (bytes == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: Text('Failed to serialize data'),
+                backgroundColor: Colors.red),
+          );
+        }
+        return;
+      }
 
       await FileSaver.instance.saveAs(
         name: 'BedfordScout_${DateTime.now().millisecondsSinceEpoch}',
-        bytes: bytes,
+        bytes: Uint8List.fromList(bytes),
         fileExtension: 'xlsx',
         mimeType: MimeType.microsoftExcel,
       );
@@ -211,26 +254,14 @@ class _HomePageState extends State<HomePage> {
     );
 
     if (confirm == true) {
-      try {
-        final dir = await getApplicationDocumentsDirectory();
-        final file = File('${dir.path}/$_fileName');
-        if (await file.exists()) {
-          await file.delete();
-        }
+      ScoutStore.instance.clear();
 
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-                content: Text('Cache cleared!'),
-                backgroundColor: Colors.orange),
-          );
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
-          );
-        }
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('Cache cleared!'),
+              backgroundColor: Colors.orange),
+        );
       }
     }
   }
@@ -646,7 +677,7 @@ class _SignInPageState extends State<SignInPage> {
 
     // Parse match number as int
     final matchNumber = int.tryParse(_matchController.text);
-    if (matchNumber == null|| matchNumber<1) {
+    if (matchNumber == null || matchNumber < 1) {
       ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Match number must be a valid number')));
       return;
@@ -777,11 +808,9 @@ class _AutonomousPageState extends State<AutonomousPage> {
                 style: TextStyle(
                     fontSize: 26, fontWeight: FontWeight.bold, color: color)),
             const SizedBox(height: 16),
-            // Main counter with MUCH BIGGER buttons
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Subtract buttons row
                 Row(
                   children: [
                     _advancedCounterButton('-10', () {
@@ -798,7 +827,6 @@ class _AutonomousPageState extends State<AutonomousPage> {
                   ],
                 ),
                 const SizedBox(width: 50),
-                // Display value
                 Container(
                   width: 160,
                   height: 120,
@@ -816,7 +844,6 @@ class _AutonomousPageState extends State<AutonomousPage> {
                   ),
                 ),
                 const SizedBox(width: 50),
-                // Add buttons row
                 Row(
                   children: [
                     _advancedCounterButton('+1', () => onChanged(value + 1),
@@ -1091,6 +1118,7 @@ class _TeleopPageState extends State<TeleopPage> {
       ],
     );
   }
+
   Widget _buildCounter(
       String title, int value, Function(int) onChanged, Color color) {
     return Card(
@@ -1103,11 +1131,9 @@ class _TeleopPageState extends State<TeleopPage> {
                 style: TextStyle(
                     fontSize: 26, fontWeight: FontWeight.bold, color: color)),
             const SizedBox(height: 16),
-            // Main counter with MUCH BIGGER buttons
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Subtract buttons row
                 Row(
                   children: [
                     _counterButton('-1', () {
@@ -1116,7 +1142,6 @@ class _TeleopPageState extends State<TeleopPage> {
                   ],
                 ),
                 const SizedBox(width: 50),
-                // Display value
                 Container(
                   width: 160,
                   height: 120,
@@ -1134,7 +1159,6 @@ class _TeleopPageState extends State<TeleopPage> {
                   ),
                 ),
                 const SizedBox(width: 50),
-                // Add buttons row
                 Row(
                   children: [
                     _counterButton('+1', () => onChanged(value + 1),
@@ -1161,11 +1185,9 @@ class _TeleopPageState extends State<TeleopPage> {
                 style: TextStyle(
                     fontSize: 26, fontWeight: FontWeight.bold, color: color)),
             const SizedBox(height: 16),
-            // Main counter with MUCH BIGGER buttons
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Subtract buttons row
                 Row(
                   children: [
                     _advancedCounterButton('-10', () {
@@ -1182,7 +1204,6 @@ class _TeleopPageState extends State<TeleopPage> {
                   ],
                 ),
                 const SizedBox(width: 50),
-                // Display value
                 Container(
                   width: 160,
                   height: 120,
@@ -1200,7 +1221,6 @@ class _TeleopPageState extends State<TeleopPage> {
                   ),
                 ),
                 const SizedBox(width: 50),
-                // Add buttons row
                 Row(
                   children: [
                     _advancedCounterButton('+1', () => onChanged(value + 1),
@@ -1220,8 +1240,8 @@ class _TeleopPageState extends State<TeleopPage> {
       ),
     );
   }
-Widget _counterButton(
-      String label, VoidCallback onPressed, Color color) {
+
+  Widget _counterButton(String label, VoidCallback onPressed, Color color) {
     return Material(
       color: color,
       borderRadius: BorderRadius.circular(15),
@@ -1241,6 +1261,7 @@ Widget _counterButton(
       ),
     );
   }
+
   Widget _advancedCounterButton(
       String label, VoidCallback onPressed, Color color) {
     return Material(
@@ -1258,45 +1279,6 @@ Widget _counterButton(
                   color: Colors.white,
                   fontSize: 32,
                   fontWeight: FontWeight.bold)),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildActionButton(String title, IconData icon, int count, Color color,
-      VoidCallback onPressed) {
-    return Card(
-      elevation: 5,
-      child: InkWell(
-        onTap: onPressed,
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            children: [
-              Icon(icon, size: 60, color: color),
-              const SizedBox(height: 12),
-              Text(title,
-                  style: TextStyle(
-                      fontSize: 22, fontWeight: FontWeight.bold, color: color)),
-              const SizedBox(height: 8),
-              Container(
-                width: 70,
-                height: 70,
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.2),
-                  shape: BoxShape.circle,
-                  border: Border.all(color: color, width: 3),
-                ),
-                child: Center(
-                  child: Text(count.toString(),
-                      style: TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                          color: color)),
-                ),
-              ),
-            ],
-          ),
         ),
       ),
     );
@@ -1345,7 +1327,6 @@ class EndgamePage extends StatefulWidget {
 }
 
 class _EndgamePageState extends State<EndgamePage> {
-  static const String _fileName = 'BEDFORD_SCOUT_V12.xlsx';
   bool _isSubmitting = false;
 
   @override
@@ -1565,7 +1546,6 @@ class _EndgamePageState extends State<EndgamePage> {
   }
 
   Widget _buildClimbLevel() {
-    
     return Card(
       elevation: 5,
       child: Padding(
@@ -1676,34 +1656,16 @@ class _EndgamePageState extends State<EndgamePage> {
     );
   }
 
+  // -------------------------------------------------------------------------
+  // Submit: just push the row into memory — no file I/O at all.
+  // -------------------------------------------------------------------------
   Future<void> _saveData() async {
     setState(() => _isSubmitting = true);
 
     try {
-      final dir = await getApplicationDocumentsDirectory();
-      final file = File('${dir.path}/$_fileName');
+      ScoutStore.instance.addRow(widget.data.toRow());
 
-      excel.Excel excelFile;
-      if (await file.exists()) {
-        var bytes = await file.readAsBytes();
-        excelFile = excel.Excel.decodeBytes(bytes);
-      } else {
-        excelFile = excel.Excel.createExcel();
-      }
-
-      excel.Sheet sheet = excelFile['Sheet1'];
-      if (sheet.maxRows == 0) {
-        sheet.appendRow(ScoutData.getHeaders());
-      }
-
-      sheet.appendRow(widget.data.toRow());
-
-      var fileBytes = excelFile.save();
-      if (fileBytes != null) {
-        await file.writeAsBytes(fileBytes);
-      }
-
-      // Increment the match number for the next entry
+      // Advance match number and match-list index for the next entry.
       _SignInPageState._savedMatch = (widget.data.matchNumber + 1).toString();
       index = widget.data.matchNumber;
 
