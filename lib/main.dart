@@ -767,7 +767,7 @@ class _AutonomousPageState extends State<AutonomousPage> {
   Widget _buildInfoCard() {
     return Card(
       elevation: 5,
-      color: widget.data.alliance == 'Red'
+      color: widget.data.alliance.startsWith('Red')
           ? Colors.red.shade100
           : Colors.blue.shade100,
       child: Padding(
@@ -1090,7 +1090,7 @@ class _TeleopPageState extends State<TeleopPage> {
   Widget _buildInfoCard() {
     return Card(
       elevation: 5,
-      color: widget.data.alliance == 'Red'
+      color: widget.data.alliance.startsWith('Red')
           ? Colors.red.shade100
           : Colors.blue.shade100,
       child: Padding(
@@ -1516,7 +1516,7 @@ class _EndgamePageState extends State<EndgamePage> {
   Widget _buildInfoCard() {
     return Card(
       elevation: 5,
-      color: widget.data.alliance == 'Red'
+      color: widget.data.alliance.startsWith('Red')
           ? Colors.red.shade100
           : Colors.blue.shade100,
       child: Padding(
