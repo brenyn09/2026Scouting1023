@@ -35,6 +35,8 @@ int index = 0;
 final levels = ['None', 'Failed', 'L1', 'L2', 'L3'];
 final levelValues = ['-0', '0', '10', '20', '30'];
 
+  String notes = "";
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await SystemChrome.setPreferredOrientations([
@@ -145,6 +147,7 @@ class ScoutData {
       excel.TextCellValue(temporarilyImmobilized ? '1' : '0'),
       excel.TextCellValue(wasDefended ? '1' : '0'),
       excel.TextCellValue(robotRoles.join(', ')),
+      excel.TextCellValue(notes),
     ];
   }
 
@@ -167,6 +170,7 @@ class ScoutData {
       excel.TextCellValue('Temporarily Immobilized'),
       excel.TextCellValue('Was defended'),
       excel.TextCellValue('Robot Role'),
+      excel.TextCellValue('notes'),
     ];
   }
 }
@@ -1329,7 +1333,14 @@ class EndgamePage extends StatefulWidget {
 }
 
 class _EndgamePageState extends State<EndgamePage> {
+    late TextEditingController _notes;
   bool _isSubmitting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _notes = TextEditingController();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1405,6 +1416,23 @@ class _EndgamePageState extends State<EndgamePage> {
                       }),
                       const SizedBox(height: 20),
                       _buildRobotRoleSelector(),
+                      const SizedBox(height: 20),
+                      TextField(
+                        controller: _notes,
+                        decoration: InputDecoration(
+                          labelText: 'notes',
+                          labelStyle: const TextStyle(fontSize: 20),
+                          prefixIcon: const Icon(Icons.note, size: 30),
+                          filled: true,
+                          fillColor: Colors.white,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(15),
+                            borderSide: const BorderSide(
+                                color: Color.fromARGB(255, 141, 36, 221)),
+                          ),
+                        ),
+                        style: const TextStyle(fontSize: 22),
+                      ),
                       const SizedBox(height: 40),
                       SizedBox(
                         width: double.infinity,
@@ -1514,6 +1542,8 @@ class _EndgamePageState extends State<EndgamePage> {
       ),
     );
   }
+
+//TODO
 
   Widget _buildInfoCard() {
     return Card(
@@ -1663,6 +1693,7 @@ class _EndgamePageState extends State<EndgamePage> {
   // -------------------------------------------------------------------------
   Future<void> _saveData() async {
     setState(() => _isSubmitting = true);
+    notes = _notes.text;
 
     try {
       ScoutStore.instance.addRow(widget.data.toRow());
