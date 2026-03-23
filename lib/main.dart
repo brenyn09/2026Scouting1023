@@ -213,7 +213,7 @@ class _HomePageState extends State<HomePage> {
       final alliance = _SignInPageState._savedAlliance ?? 'Unknown';
       final match = _SignInPageState._savedMatch;
       await FileSaver.instance.saveAs(
-        name: alliance+match,
+        name: alliance+'_'+match,
         bytes: Uint8List.fromList(bytes),
         fileExtension: 'xlsx',
         mimeType: MimeType.microsoftExcel,
