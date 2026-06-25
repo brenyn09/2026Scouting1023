@@ -5,6 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:csv/csv.dart';
+import 'package:path_provider/path_provider.dart';
+
 
 //use to format data: https://docs.google.com/spreadsheets/d/1iNFZfvdpcp4n5n6IF6cnOiV0ktBfgCo4h3O141TNBsE/edit?gid=0#gid=0
 List red1 = [
@@ -206,17 +209,24 @@ class _HomePageState extends State<HomePage> {
 
       final alliance = _SignInPageState._savedAlliance ?? 'Unknown';
       final match = _SignInPageState._savedMatch;
-      await FileSaver.instance.saveAs(
-        name: alliance+'_'+match,
+      
+      await FileSaver.instance.saveFile(
+        name: alliance+'_'+match+'_',
         bytes: Uint8List.fromList(bytes),
-        fileExtension: 'xlsx',
-        mimeType: MimeType.microsoftExcel,
+        fileExtension: 'csv',
+        mimeType: MimeType.csv,
+      );
+      await FileSaver.instance.saveAs(
+        name: alliance+'_'+match+'_',
+        bytes: Uint8List.fromList(bytes),
+        fileExtension: 'csv',
+        mimeType: MimeType.csv,
       );
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-              content: Text('Exported successfully!'),
+              content: Text('Exporting'),
               backgroundColor: Color.fromARGB(255, 254, 60, 60)),
         );
       }
