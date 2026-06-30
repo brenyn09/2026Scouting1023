@@ -243,18 +243,40 @@ class _HomePageState extends State<HomePage> {
         );
       }
 
-      // 1) Guaranteed on-device copy, explicitly flushed to disk. This always
-      //    produces a complete file regardless of how the USB picker behaves,
-      //    so the data can never be lost to a half-finished write.
+      // 1) GUARANTEED, VERIFIED on-device copy. Write with an explicit flush,
+      //    then read the file length back off disk to confirm every byte
+      //    actually landed. This copy is the source of truth for "did the
+      //    export work" — it cannot be lost to a half-finished USB write.
       String savedPath = '';
+      int verifiedBytes = 0;
       try {
         final dir = await getExternalStorageDirectory();
         if (dir != null) {
           final file = File('${dir.path}/$baseName.csv');
           await file.writeAsBytes(bytes, flush: true);
+          verifiedBytes = await file.length(); // read back = proof on disk
           savedPath = file.path;
         }
       } catch (_) {}
+
+      // If the guaranteed copy did not verify byte-for-byte, do NOT claim
+      // success. The in-memory data is untouched, so the scout can retry.
+      if (verifiedBytes != bytes.length) {
+        if (progressOpen && mounted) {
+          Navigator.of(context, rootNavigator: true).pop();
+          progressOpen = false;
+        }
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(
+                'Save NOT verified ($verifiedBytes of ${bytes.length} bytes). '
+                'Your data is still in the app — tap Export again.'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 6),
+          ));
+        }
+        return;
+      }
 
       /*To find backup:
         first time on device
@@ -263,7 +285,9 @@ class _HomePageState extends State<HomePage> {
           show internal storage
         Every time
         go to (divice name)/android/data/com.example.scouting_app/files*/
-      // 2) Also drop a copy via FileSaver (internal) and the USB picker.
+      // 2) Best-effort copies via FileSaver: an internal backup and the USB
+      //    picker. Android's picker write to a removable drive cannot be
+      //    force-flushed from Dart, so the VERIFIED copy above is the guarantee.
       await FileSaver.instance.saveFile(
         name: '${baseName}_backup',
         bytes: Uint8List.fromList(bytes),
@@ -283,9 +307,8 @@ class _HomePageState extends State<HomePage> {
         progressOpen = false;
       }
 
-      // Persistent confirmation the scout must tap before moving on, so the
-      // drive only gets pulled AFTER the write is complete. Shows the match
-      // count + byte size as proof the data is all there.
+      // Confirmation. The on-device copy is VERIFIED; the USB copy is best
+      // effort, so we tell the scout exactly how to be 100% sure.
       if (mounted) {
         await showDialog(
           context: context,
@@ -294,16 +317,17 @@ class _HomePageState extends State<HomePage> {
             backgroundColor: Colors.green.shade50,
             title: const Row(
               children: [
-                Icon(Icons.check_circle, color: Colors.green, size: 28),
+                Icon(Icons.verified, color: Colors.green, size: 28),
                 SizedBox(width: 8),
-                Text('Export complete'),
+                Text('Saved & verified'),
               ],
             ),
             content: Text(
-              'Saved "$baseName.csv"\n'
-              '$rowCount match${rowCount == 1 ? '' : 'es'}  •  ${bytes.length} bytes\n\n'
-              '${savedPath.isNotEmpty ? 'On-device copy:\n$savedPath\n\n' : ''}'
-              'It is now SAFE to remove the USB drive.',
+              '$rowCount match${rowCount == 1 ? '' : 'es'}  •  $verifiedBytes bytes verified on the tablet.\n\n'
+              '${savedPath.isNotEmpty ? 'Guaranteed copy on tablet:\n$savedPath\n\n' : ''}'
+              'A copy was also sent to the USB drive. Before unplugging, open '
+              'the USB file and check it is NOT empty. If it is empty, copy the '
+              'tablet file above onto the USB with the Files app, then eject.',
             ),
             actions: [
               TextButton(
