@@ -385,12 +385,20 @@ class _HomePageState extends State<HomePage> {
           context: context,
           barrierDismissible: false,
           builder: (ctx) => AlertDialog(
-            backgroundColor: Colors.green.shade50,
+            backgroundColor: kSurface,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(6),
+              side: const BorderSide(color: kNeon, width: 1.5),
+            ),
             title: const Row(
               children: [
-                Icon(Icons.verified, color: Colors.green, size: 28),
+                Icon(Icons.verified, color: kNeon, size: 28),
                 SizedBox(width: 8),
-                Text('Saved & verified'),
+                Text('SAVED & VERIFIED',
+                    style: TextStyle(
+                        color: kNeon,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.5)),
               ],
             ),
             content: Text(
@@ -399,11 +407,14 @@ class _HomePageState extends State<HomePage> {
               'A copy was also sent to the USB drive. Before unplugging, open '
               'the USB file and check it is NOT empty. If it is empty, copy the '
               'tablet file above onto the USB with the Files app, then eject.',
+              style: const TextStyle(color: kTextHi),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(ctx).pop(),
-                child: const Text('OK'),
+                child: const Text('OK',
+                    style: TextStyle(
+                        color: kNeon, fontWeight: FontWeight.bold)),
               ),
             ],
           ),
