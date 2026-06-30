@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:csv/csv.dart';
@@ -360,10 +361,21 @@ class _HomePageState extends State<HomePage> {
         mimeType: MimeType.csv,
       );
 
-      // Transfer is finished — tear down the progress indicator.
+      // Tear down the "saving" spinner.
       if (progressOpen && mounted) {
         Navigator.of(context, rootNavigator: true).pop();
         progressOpen = false;
+      }
+
+      // Hold "do NOT remove" for a few seconds with a live countdown so the
+      // USB write has time to flush before we ever say it is safe to unplug.
+      // (Android's removable-drive write cannot be force-flushed from Dart.)
+      if (mounted) {
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => const _SafeRemoveCountdown(seconds: 10),
+        );
       }
 
       // Confirmation. The on-device copy is VERIFIED; the USB copy is best
@@ -1901,5 +1913,77 @@ class _EndgamePageState extends State<EndgamePage> {
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
+  }
+}
+
+// ───────────────────────────────────────────────────────────────────────────
+// "Finalizing USB write" dialog: counts down so the removable-drive write has
+// time to flush, and the scout can see it is still working (not frozen). It
+// auto-closes when the countdown reaches zero.
+// ───────────────────────────────────────────────────────────────────────────
+class _SafeRemoveCountdown extends StatefulWidget {
+  final int seconds;
+  const _SafeRemoveCountdown({required this.seconds});
+
+  @override
+  State<_SafeRemoveCountdown> createState() => _SafeRemoveCountdownState();
+}
+
+class _SafeRemoveCountdownState extends State<_SafeRemoveCountdown> {
+  late int _remaining;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _remaining = widget.seconds;
+    _timer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (!mounted) return;
+      setState(() => _remaining--);
+      if (_remaining <= 0) {
+        t.cancel();
+        Navigator.of(context).pop();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: 72,
+            height: 72,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                const SizedBox(
+                  width: 72,
+                  height: 72,
+                  child: CircularProgressIndicator(strokeWidth: 5),
+                ),
+                Text('$_remaining',
+                    style: const TextStyle(
+                        fontSize: 26, fontWeight: FontWeight.bold)),
+              ],
+            ),
+          ),
+          const SizedBox(height: 18),
+          const Text(
+            'Finishing the USB write…\nDo NOT remove the drive yet.',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+          ),
+        ],
+      ),
+    );
   }
 }
