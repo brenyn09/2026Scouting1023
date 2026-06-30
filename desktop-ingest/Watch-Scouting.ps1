@@ -75,17 +75,40 @@ function Update-Master {
     }
   }
 
-  # 3) Write master.csv only when the data actually changed (atomic replace via
-  #    a temp file so Tableau never reads a half-written file).
+  # 3) Write master.csv only when the data actually changed. Write IN PLACE
+  #    (not Move-Item, which fails if the file is open elsewhere) and retry a
+  #    few times in case a reader has it momentarily. If it's truly locked
+  #    (e.g. open in Excel) we say so clearly and try again next cycle - the
+  #    data is never lost, it just lands as soon as the file is free.
   $rows = @($byKey.Values)
   if ($rows.Count -eq 0) { return 0 }
   $new = ($rows | Select-Object $Columns | ConvertTo-Csv -NoTypeInformation) -join "`r`n"
-  $old = if (Test-Path $Master) { Get-Content $Master -Raw } else { '' }
-  if ($new.TrimEnd() -ne $old.TrimEnd()) {
-    $tmp = "$Master.tmp"
-    Set-Content -Path $tmp -Value $new -Encoding UTF8
-    Move-Item -Path $tmp -Destination $Master -Force
-    Write-Host ("  = master.csv updated: {0} records from {1} source files" -f $rows.Count, $files.Count) -ForegroundColor Green
+  # Read the current file to see if anything changed. If it's locked we can't
+  # read it either - treat that as "needs writing" so we fall through to the
+  # write-retry below (which reports the lock clearly).
+  $old = ''
+  $readable = $true
+  if (Test-Path $Master) {
+    try { $old = Get-Content $Master -Raw -ErrorAction Stop } catch { $readable = $false }
+  }
+  $changed = (-not $readable) -or ($new.TrimEnd() -ne $old.TrimEnd())
+  if ($changed) {
+    $utf8 = [System.Text.UTF8Encoding]::new($false)  # no BOM (clean for Tableau)
+    $written = $false
+    for ($i = 1; $i -le 10; $i++) {
+      try {
+        [System.IO.File]::WriteAllText($Master, $new, $utf8)
+        $written = $true
+        break
+      } catch {
+        Start-Sleep -Milliseconds 300
+      }
+    }
+    if ($written) {
+      Write-Host ("  = master.csv updated: {0} records from {1} source files" -f $rows.Count, $files.Count) -ForegroundColor Green
+    } else {
+      Write-Host ("  ! master.csv is OPEN in another program - close it in Excel/Notepad (Tableau is fine). {0} records are ready and will be written as soon as the file is free." -f $rows.Count) -ForegroundColor Yellow
+    }
   }
   return $rows.Count
 }
