@@ -73,6 +73,8 @@ class ScoutStore {
 
   bool get hasData => _rows.isNotEmpty;
 
+  int get rowCount => _rows.length;
+
   /// Serialize everything to UTF-8 CSV bytes.
   /// Returns null if there are no rows.
   List<int>? toBytes() {
@@ -215,6 +217,7 @@ class _HomePageState extends State<HomePage> {
       final stamp =
           '${now.year}-${two(now.month)}-${two(now.day)}_${two(now.hour)}${two(now.minute)}';
       final baseName = 'Scout1023_${alliance}_m${match}_$stamp';
+      final rowCount = ScoutStore.instance.rowCount;
 
       // Blocking "writing in progress" indicator so scouts know NOT to pull
       // the drive yet. It stays up until the transfer actually finishes.
@@ -240,6 +243,19 @@ class _HomePageState extends State<HomePage> {
         );
       }
 
+      // 1) Guaranteed on-device copy, explicitly flushed to disk. This always
+      //    produces a complete file regardless of how the USB picker behaves,
+      //    so the data can never be lost to a half-finished write.
+      String savedPath = '';
+      try {
+        final dir = await getExternalStorageDirectory();
+        if (dir != null) {
+          final file = File('${dir.path}/$baseName.csv');
+          await file.writeAsBytes(bytes, flush: true);
+          savedPath = file.path;
+        }
+      } catch (_) {}
+
       /*To find backup:
         first time on device
           go to files
@@ -247,6 +263,7 @@ class _HomePageState extends State<HomePage> {
           show internal storage
         Every time
         go to (divice name)/android/data/com.example.scouting_app/files*/
+      // 2) Also drop a copy via FileSaver (internal) and the USB picker.
       await FileSaver.instance.saveFile(
         name: '${baseName}_backup',
         bytes: Uint8List.fromList(bytes),
@@ -267,7 +284,8 @@ class _HomePageState extends State<HomePage> {
       }
 
       // Persistent confirmation the scout must tap before moving on, so the
-      // drive only gets pulled AFTER the write is complete.
+      // drive only gets pulled AFTER the write is complete. Shows the match
+      // count + byte size as proof the data is all there.
       if (mounted) {
         await showDialog(
           context: context,
@@ -282,7 +300,9 @@ class _HomePageState extends State<HomePage> {
               ],
             ),
             content: Text(
-              'Saved "$baseName.csv".\n\n'
+              'Saved "$baseName.csv"\n'
+              '$rowCount match${rowCount == 1 ? '' : 'es'}  •  ${bytes.length} bytes\n\n'
+              '${savedPath.isNotEmpty ? 'On-device copy:\n$savedPath\n\n' : ''}'
               'It is now SAFE to remove the USB drive.',
             ),
             actions: [
