@@ -1,5 +1,6 @@
+import 'dart:convert';
 import 'dart:io';
-import 'package:excel/excel.dart' as excel;
+import 'package:csv/csv.dart';
 import 'package:file_saver/file_saver.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -66,31 +67,24 @@ class ScoutStore {
   ScoutStore._();
   static final ScoutStore instance = ScoutStore._();
 
-  final List<List<excel.CellValue>> _rows = [];
+  final List<List<dynamic>> _rows = [];
 
-  void addRow(List<excel.CellValue> row) => _rows.add(row);
+  void addRow(List<dynamic> row) => _rows.add(row);
 
   bool get hasData => _rows.isNotEmpty;
 
-  /// Serialize everything to xlsx bytes exactly once.
+  /// Serialize everything to UTF-8 CSV bytes.
   /// Returns null if there are no rows.
   List<int>? toBytes() {
     if (_rows.isEmpty) return null;
 
-    final excelFile = excel.Excel.createExcel();
+    final rows = <List<dynamic>>[
+      ScoutData.getHeaders(),
+      ..._rows,
+    ];
 
-    // createExcel() always creates a default sheet – rename it cleanly.
-    final sheetName = 'Sheet1';
-    excelFile.rename(excelFile.getDefaultSheet()!, sheetName);
-    final sheet = excelFile[sheetName];
-
-    sheet.appendRow(ScoutData.getHeaders());
-    for (final row in _rows) {
-      sheet.appendRow(row);
-    }
-
-    final bytes = excelFile.save();
-    return bytes;
+    final csvString = const ListToCsvConverter().convert(rows);
+    return utf8.encode(csvString);
   }
 
   void clear() => _rows.clear();
@@ -129,49 +123,49 @@ class ScoutData {
     required this.alliance,
   });
 
-  List<excel.CellValue> toRow() {
+  List<dynamic> toRow() {
     return [
-      excel.TextCellValue(initials),
-      excel.IntCellValue(matchNumber),
-      excel.TextCellValue(teamNumber),
-      excel.TextCellValue(alliance),
-      excel.IntCellValue(autoFuelScored),
-      excel.IntCellValue(autoFuelFed),
-      excel.TextCellValue(climb ? '1' : '0'),
-      excel.TextCellValue(pickupLocations.join(', ')),
-      excel.IntCellValue(teleopFuelScored),
-      excel.IntCellValue(teleopFuelFed),
-      excel.IntCellValue(defense),
-      excel.TextCellValue(levelValues.elementAt(levels.indexOf(climbLevel))),
-      excel.TextCellValue(broke ? '1' : '0'),
-      excel.TextCellValue(permanentlyImmobilized ? '1' : '0'),
-      excel.TextCellValue(temporarilyImmobilized ? '1' : '0'),
-      excel.TextCellValue(wasDefended ? '1' : '0'),
-      excel.TextCellValue(robotRoles.join(', ')),
-      excel.TextCellValue(notes),
+      initials,
+      matchNumber,
+      teamNumber,
+      alliance,
+      autoFuelScored,
+      autoFuelFed,
+      climb ? 1 : 0,
+      pickupLocations.join(', '),
+      teleopFuelScored,
+      teleopFuelFed,
+      defense,
+      levelValues.elementAt(levels.indexOf(climbLevel)),
+      broke ? 1 : 0,
+      permanentlyImmobilized ? 1 : 0,
+      temporarilyImmobilized ? 1 : 0,
+      wasDefended ? 1 : 0,
+      robotRoles.join(', '),
+      notes,
     ];
   }
 
-  static List<excel.CellValue> getHeaders() {
+  static List<dynamic> getHeaders() {
     return [
-      excel.TextCellValue('Initials'),
-      excel.TextCellValue('Match'),
-      excel.TextCellValue('Team'),
-      excel.TextCellValue('Alliance'),
-      excel.TextCellValue('A Fuel Scored'),
-      excel.TextCellValue('A Fuel Fed'),
-      excel.TextCellValue('Climb'),
-      excel.TextCellValue('Pick up location?'),
-      excel.TextCellValue('T Fuel Scored'),
-      excel.TextCellValue('T Fuel Fed'),
-      excel.TextCellValue('Defense'),
-      excel.TextCellValue('Climb Level'),
-      excel.TextCellValue('Broke'),
-      excel.TextCellValue('Permanently Immobilized'),
-      excel.TextCellValue('Temporarily Immobilized'),
-      excel.TextCellValue('Was defended'),
-      excel.TextCellValue('Robot Role'),
-      excel.TextCellValue('notes'),
+      'Initials',
+      'Match',
+      'Team',
+      'Alliance',
+      'A Fuel Scored',
+      'A Fuel Fed',
+      'Climb',
+      'Pick up location?',
+      'T Fuel Scored',
+      'T Fuel Fed',
+      'Defense',
+      'Climb Level',
+      'Broke',
+      'Permanently Immobilized',
+      'Temporarily Immobilized',
+      'Was defended',
+      'Robot Role',
+      'notes',
     ];
   }
 }
@@ -189,6 +183,7 @@ class _HomePageState extends State<HomePage> {
     final password = await _showPasswordDialog('Export to USB');
     if (password != 'strategy1023') return;
 
+    bool progressOpen = false;
     try {
       if (!ScoutStore.instance.hasData) {
         if (mounted) {
@@ -200,11 +195,11 @@ class _HomePageState extends State<HomePage> {
       }
 
       final bytes = ScoutStore.instance.toBytes();
-      if (bytes == null) {
+      if (bytes == null || bytes.isEmpty) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-                content: Text('Failed to serialize data'),
+                content: Text('Failed to serialize data (no bytes)'),
                 backgroundColor: Colors.red),
           );
         }
@@ -213,6 +208,38 @@ class _HomePageState extends State<HomePage> {
 
       final alliance = _SignInPageState._savedAlliance ?? 'Unknown';
       final match = _SignInPageState._savedMatch;
+
+      // Readable, sortable filename: team + position + match + timestamp.
+      String two(int n) => n.toString().padLeft(2, '0');
+      final now = DateTime.now();
+      final stamp =
+          '${now.year}-${two(now.month)}-${two(now.day)}_${two(now.hour)}${two(now.minute)}';
+      final baseName = 'Scout1023_${alliance}_m${match}_$stamp';
+
+      // Blocking "writing in progress" indicator so scouts know NOT to pull
+      // the drive yet. It stays up until the transfer actually finishes.
+      if (mounted) {
+        progressOpen = true;
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => const AlertDialog(
+            content: Row(
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(width: 20),
+                Expanded(
+                  child: Text(
+                    'Saving to USB…\nDo NOT remove the drive.',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }
+
       /*To find backup:
         first time on device
           go to files
@@ -221,26 +248,58 @@ class _HomePageState extends State<HomePage> {
         Every time
         go to (divice name)/android/data/com.example.scouting_app/files*/
       await FileSaver.instance.saveFile(
-        name: alliance+'_'+match+'_backup',
+        name: '${baseName}_backup',
         bytes: Uint8List.fromList(bytes),
         fileExtension: 'csv',
         mimeType: MimeType.csv,
       );
       await FileSaver.instance.saveAs(
-        name: alliance+'_'+match,
+        name: baseName,
         bytes: Uint8List.fromList(bytes),
         fileExtension: 'csv',
         mimeType: MimeType.csv,
       );
 
+      // Transfer is finished — tear down the progress indicator.
+      if (progressOpen && mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+        progressOpen = false;
+      }
+
+      // Persistent confirmation the scout must tap before moving on, so the
+      // drive only gets pulled AFTER the write is complete.
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('Exporting'),
-              backgroundColor: Color.fromARGB(255, 254, 60, 60)),
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (ctx) => AlertDialog(
+            backgroundColor: Colors.green.shade50,
+            title: const Row(
+              children: [
+                Icon(Icons.check_circle, color: Colors.green, size: 28),
+                SizedBox(width: 8),
+                Text('Export complete'),
+              ],
+            ),
+            content: Text(
+              'Saved "$baseName.csv".\n\n'
+              'It is now SAFE to remove the USB drive.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
         );
       }
     } catch (e) {
+      // Make sure the progress dialog never gets stuck open on error.
+      if (progressOpen && mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+        progressOpen = false;
+      }
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
