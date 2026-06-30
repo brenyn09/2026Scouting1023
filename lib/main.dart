@@ -6,6 +6,29 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:path_provider/path_provider.dart';
+
+// ─────────────────────────────────────────────────────────────────────────
+//  CYBERPUNK INDUSTRIAL PALETTE  —  team 1023
+// ─────────────────────────────────────────────────────────────────────────
+const Color kBg = Color(0xFF07080B); // near-black base
+const Color kBgTop = Color(0xFF0E1118); // top of the screen wash
+const Color kSurface = Color(0xFF12151C); // panel / card
+const Color kSurfaceHi = Color(0xFF1A1E27); // raised panel
+const Color kNeon = Color(0xFF18E0D0); // electric cyan accent
+const Color kMagenta = Color(0xFFFF2BD6); // hot magenta accent
+const Color kAmber = Color(0xFFFFC233); // warning amber
+const Color kLine = Color(0xFF252B38); // hairline borders
+const Color kTextHi = Color(0xFFE7F6F4); // primary text
+const Color kTextLo = Color(0xFF8C99A8); // muted text
+
+// Shared dark background wash used on every screen.
+const BoxDecoration kScreenBg = BoxDecoration(
+  gradient: LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [kBgTop, kBg],
+  ),
+);
 /*To find backup:
   first time on device
     go to files
@@ -52,9 +75,45 @@ class MyApp extends StatelessWidget {
   const MyApp({super.key});
   @override
   Widget build(BuildContext context) {
+    final darkText = ThemeData(brightness: Brightness.dark).textTheme;
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(useMaterial3: true),
+      theme: ThemeData(
+        useMaterial3: true,
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: kBg,
+        canvasColor: kBg,
+        cardColor: kSurface,
+        dividerColor: kLine,
+        colorScheme: const ColorScheme.dark(
+          primary: kNeon,
+          secondary: kMagenta,
+          surface: kSurface,
+          onPrimary: Color(0xFF03110F),
+          onSecondary: Color(0xFF1A0016),
+          onSurface: kTextHi,
+        ),
+        textTheme: GoogleFonts.rajdhaniTextTheme(darkText)
+            .apply(bodyColor: kTextHi, displayColor: kTextHi),
+        iconTheme: const IconThemeData(color: kTextHi),
+        snackBarTheme: const SnackBarThemeData(
+          backgroundColor: kSurfaceHi,
+          contentTextStyle: TextStyle(color: kTextHi),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: kSurfaceHi,
+          labelStyle: const TextStyle(color: kTextLo),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(4),
+            borderSide: const BorderSide(color: kLine),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(4),
+            borderSide: const BorderSide(color: kNeon, width: 2),
+          ),
+        ),
+      ),
       home: const HomePage(),
     );
   }
@@ -407,96 +466,113 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Color.fromARGB(255, 255, 230, 230),
-                  Color.fromARGB(255, 234, 213, 213),
-                  Color.fromARGB(255, 255, 213, 213)
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: RadialGradient(
+            center: Alignment.topCenter,
+            radius: 1.3,
+            colors: [Color(0xFF13212C), kBg],
+          ),
+        ),
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Section tag chip
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 6),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: kNeon.withOpacity(0.5)),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text('FRC  //  TEAM 1023',
+                        style: GoogleFonts.shareTechMono(
+                            fontSize: 15, color: kNeon, letterSpacing: 3)),
+                  ),
+                  const SizedBox(height: 26),
+                  Text('BEDFORD',
+                      style: GoogleFonts.orbitron(
+                          fontSize: 56,
+                          fontWeight: FontWeight.w800,
+                          height: 1.0,
+                          color: kTextHi,
+                          letterSpacing: 4)),
+                  Text('EXPRESS',
+                      style: GoogleFonts.orbitron(
+                          fontSize: 56,
+                          fontWeight: FontWeight.w800,
+                          height: 1.05,
+                          color: kNeon,
+                          letterSpacing: 4)),
+                  const SizedBox(height: 12),
+                  Text('SCOUTING SYSTEM',
+                      style: GoogleFonts.shareTechMono(
+                          fontSize: 17, color: kTextLo, letterSpacing: 6)),
+                  const SizedBox(height: 14),
+                  Container(width: 220, height: 2, color: kNeon.withOpacity(0.5)),
+                  const SizedBox(height: 44),
+                  // START SCOUTING — solid neon
+                  SizedBox(
+                    width: 360,
+                    height: 86,
+                    child: ElevatedButton.icon(
+                      onPressed: () => Navigator.push(context,
+                          MaterialPageRoute(builder: (_) => const SignInPage())),
+                      icon: const Icon(Icons.radar, size: 30),
+                      label: const Text('START SCOUTING',
+                          style: TextStyle(
+                              fontSize: 27,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 2)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: kNeon,
+                        foregroundColor: kBg,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(6)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  _homeOutlineButton(
+                      Icons.usb, 'EXPORT TO USB', kNeon, _exportData),
+                  const SizedBox(height: 14),
+                  _homeOutlineButton(
+                      Icons.delete_forever, 'CLEAR CACHE', kMagenta, _clearCache),
                 ],
               ),
             ),
-            child: SafeArea(
-              child: Center(
-                child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text('Bedford Express',
-                          style: GoogleFonts.libreFranklin(
-                            fontSize: 67,
-                            fontWeight: FontWeight.w700,
-                            color: const Color.fromARGB(255, 211, 23, 23),
-                          )),
-                      const SizedBox(height: 20),
+          ),
+        ),
+      ),
+    );
+  }
 
-                      const SizedBox(height: 50),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          minimumSize: const Size(350, 90),
-                          backgroundColor:
-                              const Color.fromARGB(255, 211, 23, 23),
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(50)),
-                        ),
-                        onPressed: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => const SignInPage())),
-                        child: const Text('START SCOUTING',
-                            style: TextStyle(
-                                fontSize: 32, fontWeight: FontWeight.bold)),
-                      ),
-                      const SizedBox(height: 40),
-                      // Export to USB Button
-                      SizedBox(
-                        width: 350,
-                        height: 70,
-                        child: OutlinedButton.icon(
-                          onPressed: _exportData,
-                          icon: const Icon(Icons.usb, size: 28),
-                          label: const Text('EXPORT TO USB',
-                              style: TextStyle(
-                                  fontSize: 22, fontWeight: FontWeight.bold)),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor:
-                                const Color.fromARGB(255, 255, 0, 0),
-                            side: const BorderSide(
-                                color: Color.fromARGB(255, 211, 23, 23),
-                                width: 2),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(50)),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      // Clear Cache Button
-                      SizedBox(
-                        width: 350,
-                        height: 70,
-                        child: OutlinedButton.icon(
-                          onPressed: _clearCache,
-                          icon: const Icon(Icons.delete_forever, size: 28),
-                          label: const Text('CLEAR CACHE',
-                              style: TextStyle(
-                                  fontSize: 22, fontWeight: FontWeight.bold)),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor:
-                                const Color.fromARGB(255, 255, 0, 0),
-                            side: const BorderSide(
-                                color: Color.fromARGB(255, 211, 23, 23),
-                                width: 2),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(50)),
-                          ),
-                        ),
-                      ),
-                    ]),
-              ),
-            )));
+  Widget _homeOutlineButton(
+      IconData icon, String label, Color color, VoidCallback onPressed) {
+    return SizedBox(
+      width: 360,
+      height: 64,
+      child: OutlinedButton.icon(
+        onPressed: onPressed,
+        icon: Icon(icon, size: 26),
+        label: Text(label,
+            style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1.5)),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: color,
+          side: BorderSide(color: color.withOpacity(0.7), width: 1.5),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(6)),
+        ),
+      ),
+    );
   }
 }
 
@@ -569,13 +645,7 @@ class _SignInPageState extends State<SignInPage> {
         foregroundColor: Colors.white,
       ),
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color.fromARGB(255, 219, 179, 246), Colors.white],
-          ),
-        ),
+        decoration: kScreenBg,
         child: SafeArea(
           child: Column(
             children: [
@@ -592,7 +662,7 @@ class _SignInPageState extends State<SignInPage> {
                           labelStyle: const TextStyle(fontSize: 20),
                           prefixIcon: const Icon(Icons.person, size: 30),
                           filled: true,
-                          fillColor: Colors.white,
+                          fillColor: kSurfaceHi,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(15),
                             borderSide: const BorderSide(
@@ -612,7 +682,7 @@ class _SignInPageState extends State<SignInPage> {
                                 labelStyle: const TextStyle(fontSize: 20),
                                 prefixIcon: const Icon(Icons.numbers, size: 30),
                                 filled: true,
-                                fillColor: Colors.white,
+                                fillColor: kSurfaceHi,
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(15),
                                 ),
@@ -630,7 +700,7 @@ class _SignInPageState extends State<SignInPage> {
                                 labelStyle: const TextStyle(fontSize: 20),
                                 prefixIcon: const Icon(Icons.groups, size: 30),
                                 filled: true,
-                                fillColor: Colors.white,
+                                fillColor: kSurfaceHi,
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(15),
                                 ),
@@ -813,13 +883,7 @@ class _AutonomousPageState extends State<AutonomousPage> {
         foregroundColor: Colors.white,
       ),
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color.fromARGB(255, 193, 189, 254), Colors.white],
-          ),
-        ),
+        decoration: kScreenBg,
         child: SafeArea(
           child: Column(
             children: [
@@ -866,8 +930,8 @@ class _AutonomousPageState extends State<AutonomousPage> {
     return Card(
       elevation: 5,
       color: widget.data.alliance.startsWith('Red')
-          ? Colors.red.shade100
-          : Colors.blue.shade100,
+          ? const Color(0xFF2A1217)
+          : const Color(0xFF0F1D2C),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(
@@ -885,8 +949,12 @@ class _AutonomousPageState extends State<AutonomousPage> {
   Widget _infoItem(String label, String value) {
     return Column(
       children: [
-        Text(label,
-            style: TextStyle(fontSize: 16, color: Colors.grey.shade700)),
+        Text(label.toUpperCase(),
+            style: const TextStyle(
+                fontSize: 14,
+                color: kTextLo,
+                letterSpacing: 1.5,
+                fontWeight: FontWeight.w600)),
         const SizedBox(height: 4),
         Text(value,
             style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
@@ -1139,13 +1207,7 @@ class _TeleopPageState extends State<TeleopPage> {
         foregroundColor: Colors.white,
       ),
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color.fromARGB(255, 233, 197, 228), Colors.white],
-          ),
-        ),
+        decoration: kScreenBg,
         child: SafeArea(
           child: Column(
             children: [
@@ -1190,8 +1252,8 @@ class _TeleopPageState extends State<TeleopPage> {
     return Card(
       elevation: 5,
       color: widget.data.alliance.startsWith('Red')
-          ? Colors.red.shade100
-          : Colors.blue.shade100,
+          ? const Color(0xFF2A1217)
+          : const Color(0xFF0F1D2C),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(
@@ -1209,8 +1271,12 @@ class _TeleopPageState extends State<TeleopPage> {
   Widget _infoItem(String label, String value) {
     return Column(
       children: [
-        Text(label,
-            style: TextStyle(fontSize: 16, color: Colors.grey.shade700)),
+        Text(label.toUpperCase(),
+            style: const TextStyle(
+                fontSize: 14,
+                color: kTextLo,
+                letterSpacing: 1.5,
+                fontWeight: FontWeight.w600)),
         const SizedBox(height: 4),
         Text(value,
             style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
@@ -1444,13 +1510,7 @@ class _EndgamePageState extends State<EndgamePage> {
         foregroundColor: Colors.white,
       ),
       body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.teal.shade100, Colors.white],
-          ),
-        ),
+        decoration: kScreenBg,
         child: SafeArea(
           child: Column(
             children: [
@@ -1517,7 +1577,7 @@ class _EndgamePageState extends State<EndgamePage> {
                           labelStyle: const TextStyle(fontSize: 20),
                           prefixIcon: const Icon(Icons.note, size: 30),
                           filled: true,
-                          fillColor: Colors.white,
+                          fillColor: kSurfaceHi,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(15),
                             borderSide: const BorderSide(
@@ -1551,7 +1611,7 @@ class _EndgamePageState extends State<EndgamePage> {
                 ),
               ),
               Container(
-                color: Colors.white,
+                color: kSurface,
                 padding: const EdgeInsets.all(16),
                 child: Align(
                   alignment: Alignment.centerLeft,
@@ -1642,8 +1702,8 @@ class _EndgamePageState extends State<EndgamePage> {
     return Card(
       elevation: 5,
       color: widget.data.alliance.startsWith('Red')
-          ? Colors.red.shade100
-          : Colors.blue.shade100,
+          ? const Color(0xFF2A1217)
+          : const Color(0xFF0F1D2C),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(
@@ -1661,8 +1721,12 @@ class _EndgamePageState extends State<EndgamePage> {
   Widget _infoItem(String label, String value) {
     return Column(
       children: [
-        Text(label,
-            style: TextStyle(fontSize: 16, color: Colors.grey.shade700)),
+        Text(label.toUpperCase(),
+            style: const TextStyle(
+                fontSize: 14,
+                color: kTextLo,
+                letterSpacing: 1.5,
+                fontWeight: FontWeight.w600)),
         const SizedBox(height: 4),
         Text(value,
             style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
@@ -1677,11 +1741,12 @@ class _EndgamePageState extends State<EndgamePage> {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            const Text('Climb Level',
+            const Text('CLIMB LEVEL',
                 style: TextStyle(
-                    fontSize: 26,
+                    fontSize: 24,
                     fontWeight: FontWeight.bold,
-                    color: Colors.purple)),
+                    letterSpacing: 2,
+                    color: kNeon)),
             const SizedBox(height: 16),
             Wrap(
               spacing: 12,
@@ -1696,18 +1761,18 @@ class _EndgamePageState extends State<EndgamePage> {
                     width: 80,
                     height: 80,
                     decoration: BoxDecoration(
-                      color: isSelected ? Colors.purple : Colors.grey.shade300,
-                      borderRadius: BorderRadius.circular(15),
+                      color: isSelected ? kNeon : kSurfaceHi,
+                      borderRadius: BorderRadius.circular(6),
                       border: Border.all(
-                          color: Colors.purple, width: isSelected ? 3 : 1),
+                          color: isSelected ? kNeon : kLine,
+                          width: isSelected ? 2 : 1),
                     ),
                     child: Center(
                       child: Text(level,
                           style: TextStyle(
                               fontSize: level == 'Failed' ? 16 : 24,
                               fontWeight: FontWeight.bold,
-                              color:
-                                  isSelected ? Colors.white : Colors.black87)),
+                              color: isSelected ? kBg : kTextHi)),
                     ),
                   ),
                 );
@@ -1723,7 +1788,7 @@ class _EndgamePageState extends State<EndgamePage> {
       Color color, Function(bool) onChanged) {
     return Card(
       elevation: 5,
-      color: value ? color.withOpacity(0.2) : Colors.white,
+      color: value ? color.withOpacity(0.22) : kSurfaceHi,
       child: InkWell(
         onTap: () => onChanged(!value),
         child: Padding(
@@ -1738,7 +1803,7 @@ class _EndgamePageState extends State<EndgamePage> {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: value ? color : Colors.black87,
+                  color: value ? color : kTextHi,
                 ),
               ),
               const SizedBox(height: 8),
@@ -1746,13 +1811,13 @@ class _EndgamePageState extends State<EndgamePage> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                 decoration: BoxDecoration(
-                  color: value ? color : Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(20),
+                  color: value ? color : kLine,
+                  borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
                   value ? 'YES' : 'NO',
                   style: TextStyle(
-                    color: value ? Colors.white : Colors.black87,
+                    color: value ? Colors.white : kTextLo,
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
                   ),
