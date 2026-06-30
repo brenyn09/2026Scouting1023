@@ -183,6 +183,7 @@ class _HomePageState extends State<HomePage> {
     final password = await _showPasswordDialog('Export to USB');
     if (password != 'strategy1023') return;
 
+    bool progressOpen = false;
     try {
       if (!ScoutStore.instance.hasData) {
         if (mounted) {
@@ -215,6 +216,30 @@ class _HomePageState extends State<HomePage> {
           '${now.year}-${two(now.month)}-${two(now.day)}_${two(now.hour)}${two(now.minute)}';
       final baseName = 'Scout1023_${alliance}_m${match}_$stamp';
 
+      // Blocking "writing in progress" indicator so scouts know NOT to pull
+      // the drive yet. It stays up until the transfer actually finishes.
+      if (mounted) {
+        progressOpen = true;
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => const AlertDialog(
+            content: Row(
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(width: 20),
+                Expanded(
+                  child: Text(
+                    'Saving to USB…\nDo NOT remove the drive.',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }
+
       /*To find backup:
         first time on device
           go to files
@@ -235,14 +260,46 @@ class _HomePageState extends State<HomePage> {
         mimeType: MimeType.csv,
       );
 
+      // Transfer is finished — tear down the progress indicator.
+      if (progressOpen && mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+        progressOpen = false;
+      }
+
+      // Persistent confirmation the scout must tap before moving on, so the
+      // drive only gets pulled AFTER the write is complete.
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('Exporting'),
-              backgroundColor: Color.fromARGB(255, 254, 60, 60)),
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (ctx) => AlertDialog(
+            backgroundColor: Colors.green.shade50,
+            title: const Row(
+              children: [
+                Icon(Icons.check_circle, color: Colors.green, size: 28),
+                SizedBox(width: 8),
+                Text('Export complete'),
+              ],
+            ),
+            content: Text(
+              'Saved "$baseName.csv".\n\n'
+              'It is now SAFE to remove the USB drive.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
         );
       }
     } catch (e) {
+      // Make sure the progress dialog never gets stuck open on error.
+      if (progressOpen && mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+        progressOpen = false;
+      }
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
