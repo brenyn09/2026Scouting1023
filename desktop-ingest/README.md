@@ -64,6 +64,37 @@ manual F5.
 
 ---
 
+## Live TBA event data (built for IRI 2026)
+
+A second watcher, **`START-TBA-LIVE.bat`**, rips the whole event from
+The Blue Alliance every minute (this one **needs internet**). It writes four
+CSVs next to `master.csv`:
+
+| File | What's in it |
+|---|---|
+| `tba_matches.csv` | Full schedule + live scores, one row per match, with every score-breakdown field TBA publishes (auto/teleop/tower points, fouls, RPs...) as `Red ...` / `Blue ...` columns |
+| `tba_rankings.csv` | Live rankings — rank, W-L-T, matches played, ranking points |
+| `tba_oprs.csv` | OPR / DPR / CCWM per team |
+| `tba_teams.csv` | Every team at the event (number, name, home town) |
+
+Files only rewrite when the data changes, and the breakdown columns are
+discovered from the API — no game-specific code to update next season.
+
+- **One-time setup:** it needs a free TBA read key. Sign in at
+  [thebluealliance.com/account](https://www.thebluealliance.com/account), add a
+  Read API Key, and paste it into a file named **`tba-key.txt`** in this folder
+  (the team already has one — ask Brendan). The key stays on the laptop; it is
+  never committed.
+- It's set to **`2026iri`** (IRI, July 16–18). For another event, edit the
+  `-EventKey` in the `.bat` (event keys are in every TBA URL, e.g.
+  `2026miken`).
+- **In Tableau:** add the `tba_*.csv` files as data sources and relate them to
+  your scouting data — `Team` ↔ `Team`, `Match` ↔ `Match`. Now official scores
+  and OPR sit next to your scouted fuel/climb numbers.
+- Run it alongside the USB watcher — two windows, both hands-off.
+- Quick test any time: run `TEST-ME.bat` for the USB side, or
+  `powershell -ExecutionPolicy Bypass -File Get-TBALive.ps1 -Once` for TBA.
+
 ## How duplicates are handled
 
 Each tablet's export is **cumulative** — every export contains all of that
