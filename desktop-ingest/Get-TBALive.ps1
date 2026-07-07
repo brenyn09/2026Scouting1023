@@ -30,9 +30,9 @@ $ErrorActionPreference = 'Stop'
 $Root = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 # TBA read key: from the TBA_AUTH_KEY environment variable, or from a
-# tba-key.txt file next to this script (one line, just the key). The key is
+# tbakey.txt file next to this script (one line, just the key). The key is
 # free - any team member can make one at thebluealliance.com/account.
-$KeyFile = Join-Path $Root 'tba-key.txt'
+$KeyFile = Join-Path $Root 'tbakey.txt'
 $AuthKey = if ($env:TBA_AUTH_KEY) { $env:TBA_AUTH_KEY }
            elseif (Test-Path $KeyFile) { (Get-Content $KeyFile -Raw).Trim() }
            else { '' }
@@ -40,7 +40,7 @@ if (-not $AuthKey) {
   Write-Host 'No TBA key found. Two-minute fix:' -ForegroundColor Yellow
   Write-Host '  1. Sign in at  https://www.thebluealliance.com/account'
   Write-Host '  2. Under "Read API Keys" click Add New Key (any description).'
-  Write-Host '  3. Paste the key into a file named  tba-key.txt  in this folder.'
+  Write-Host '  3. Paste the key into a file named  tbakey.txt  in this folder.'
   Write-Host 'Then start this again.'
   return
 }
