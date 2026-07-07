@@ -239,7 +239,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  static const String _fileName = 'BEDFORD_SCOUT_V12.xlsx';
 
   Future<void> _exportData() async {
     final password = await _showPasswordDialog('Export to USB');
